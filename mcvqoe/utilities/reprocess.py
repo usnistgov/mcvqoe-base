@@ -9,8 +9,8 @@ import scipy.io.wavfile
 import sys
 import tempfile
 
-#expected path components for csv files
-csv_path_names = (('csv','2loc_tx-data'),('data'))
+# Expected path components for csv files
+csv_path_names = (("Access_Time", "Intelligibility", "Mouth_2_Ear", "PSuD", "Transmit_Volume_Optimization"), ("MCV-QoE"))
 
 def make_parser():
 
@@ -35,37 +35,37 @@ def get_module(module_name=None, datafile=None):
 
     if not module_name:
 
-        #get module name
+        # Get module name
         module_name = mcvqoe.base.get_measurement_from_file(datafile)
 
-        #make sure a module was found
+        # Make sure a module was found
         if not module_name:
             raise RuntimeError(f"Unable to determine measurement for '{datafile}'")
     else:
-        #name given, clean up and use
+        # Name given, clean up and use
 
-        #make lowercase
+        # Make lowercase
         module_name = module_name.lower()
 
-        #check if full import path was given
+        # Check if full import path was given
         if not module_name.startswith('mcvqoe.') :
-            #add mcvqoe to the module include
+            # Add mcvqoe to the module include
             module_name = 'mcvqoe.' + module_name
 
-    #load module and return
+    # Load module and return
     return importlib.import_module(module_name).measure
 
 def reprocess_file(test_obj, datafile, out_name, **kwargs):
 
     if not out_name:
-        #split data file path into parts
-        d,n=os.path.split(datafile)
-        #construct new name for file
-        out_name=os.path.join(d,'R'+n)
+        # Split data file path into parts
+        d, n = os.path.split(datafile)
+        # Construct new name for file
+        out_name = os.path.join(d, 'R'+n)
 
     print(f'Loading test data from \'{datafile}\'', file=sys.stderr)
-    #read in test data
-    test_dat=test_obj.load_test_data(datafile, **kwargs)
+    # Read in test data
+    test_dat = test_obj.load_test_data(datafile, **kwargs)
 
     print(f'Reprocessing test data to \'{out_name}\'', file=sys.stderr)
 
@@ -73,12 +73,11 @@ def reprocess_file(test_obj, datafile, out_name, **kwargs):
 
     return out_name
 
-
 def main():
 
     #-----------------------------[Parse arguments]-----------------------------
 
-    #get parser
+    # Get parser
     parser = make_parser()
 
     args = parser.parse_args()
@@ -89,8 +88,8 @@ def main():
 
     #---------------------------[Create Test object]---------------------------
 
-    #create test obj to reprocess with
-    test_obj=measurement_class()
+    # Create test obj to reprocess with
+    test_obj = measurement_class()
 
 
     test_obj.split_audio_dest = args.split_audio_dest
@@ -98,25 +97,25 @@ def main():
 
     with tempfile.TemporaryDirectory() as tmp_dir:
 
-        if(args.outfile=='--'):
-            #print results, don't save file
-            out_name=os.path.join(tmp_dir,'tmp.csv')
-            print_outf=True
+        if(args.outfile == '--'):
+            # Print results, don't save file
+            out_name = os.path.join(tmp_dir, 'tmp.csv')
+            print_outf = True
         else:
-            out_name=args.outfile
-            print_outf=False
+            out_name = args.outfile
+            print_outf = False
 
         out_name = reprocess_file(test_obj, args.datafile, out_name, audio_path=args.audio_path)
 
         if(print_outf):
-            with open(out_name,'rt') as out_file:
-                dat=out_file.read()
+            with open(out_name, 'rt') as out_file:
+                dat = out_file.read()
             print(dat)
             print(f'Reprocessing complete', file=sys.stderr)
         else:
             print(f'Reprocessing complete for \'{out_name}\'', file=sys.stderr)
 
 
-#main function
+# Main function
 if __name__ == "__main__":
     main()

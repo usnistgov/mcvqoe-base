@@ -755,13 +755,13 @@ class Measure:
 
             print(f'Audio clip names : {self.audio_files}')
 
-            dat_name = get_meas_basename(fname)
+            dat_name = get_meas_basename(fname) + "Tx2Loc"
 
             if audio_path is not None:
                 self.audio_path = audio_path
             else:
                 # set audio_path based on filename
-                self.audio_path = os.path.join(os.path.dirname(os.path.dirname(fname)), "wav", dat_name)
+                self.audio_path = os.path.join(os.path.dirname(os.path.dirname(fname)), dat_name, "wav")
 
             # load audio data from files
             self.load_audio()

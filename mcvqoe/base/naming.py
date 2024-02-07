@@ -1,39 +1,48 @@
-
 import os.path
 import re
 
-repocess_detect = r'(?P<reprocess>R)?'
+reprocess_detect = r'(?P<reprocess>R)?'
+new_reprocess_detect = r"(?P<reprocess>_2LocReprocess)"
 base_start = r'(?P<base>capture2?_'
 test_type = r'(?P<type>.*)'
 timestamp = r'_(?P<date>\d{2}-[A-z][a-z]{2}-\d{2,4})_(?P<time>\d{2}-\d{2}-\d{2})'
+new_timestamp = r'(?P<base>(?P<date>\d{2}-[A-z][a-z]{2}-\d{2,4})_(?P<time>\d{2}-\d{2}-\d{2})'
 access_word = r'_(?P<clip>(?P<talker>[MF]\d)_b(?P<batch>\d+)'\
               r'_w(?P<word>\d)_(?P<cname>[a-z]+))'
 suffix = r'(?:_(?P<suffix>BAD|TEMP))?'
 
 match_res = {
-                "universal" : repocess_detect +
-                              base_start + test_type + timestamp + ')' +
-                              '(?:' + access_word + ')?' + suffix,
-                "access_csv" : repocess_detect +
-                               base_start + test_type + timestamp + ')' +
-                               access_word + suffix,
+                "universal"      : reprocess_detect + base_start +
+                                   test_type + timestamp + ')' +
+                                   '(?:' + access_word + ')?' + suffix,
+                                   
+                "access_csv"     : reprocess_detect + base_start + 
+                                   test_type + timestamp + ')' +
+                                   access_word + suffix,
+                                   
+                "new"            : new_timestamp + "_" + test_type + ")" + 
+                                   new_reprocess_detect + suffix,
+                                   
+                "new_access_csv" : new_timestamp + "_" + test_type + ")" +
+                                   new_reprocess_detect + '(?:' + access_word +
+                                   ')?' + suffix,
             }
 
 def _normalize(name):
-    #check for empty
+    # Check for empty
     if not name:
         raise RuntimeError(f'Unable to get base name from empty string')
-    #strip off any path components
+    # Strip off any path components
     dirname, basename = os.path.split(name)
-    #check
+    # Check
     if not basename:
-        #name must have ended with a separator
-        #get the last path component
+        # Name must have ended with a separator
+        # Get the last path component
         return os.path.basename(dirname)
     else:
         return basename
 
-def match_name(name, re_type="universal", raise_error=True):
+def match_name(name, re_type="new_access_csv", raise_error=True):
     """
     Return a match object for a test filename.
 
@@ -65,6 +74,7 @@ def match_name(name, re_type="universal", raise_error=True):
         If an invalid `re_type` is passed.
 
     """
+    
     name = _normalize(name)
 
     m = re.match(match_res[re_type], name)
@@ -72,10 +82,10 @@ def match_name(name, re_type="universal", raise_error=True):
     if not m and raise_error:
         raise RuntimeError(f'Unable to get base name from \'{name}\'')
 
-    #return match object
+    # Return match object
     return m
 
-def get_meas_basename(name, re_type="universal"):
+def get_meas_basename(name, re_type="new_access_csv"):
     """
     Get the base name for the measurement.
 
@@ -90,9 +100,9 @@ def get_meas_basename(name, re_type="universal"):
 
     re_type : str, default="universal"
         The type of re to use for the match. Currently the only valid values are
-        "universal" (default) and "access_csv". Universal should match any name.
-        While access_csv will only match access time csv files that contain a
-        clip name.
+        "new" (default), "universal" and "access_csv". New should match the newer 
+        file structure naming scheme. Universal should match any name. While access_csv 
+        will only match access time csv files that contain a clip name.
 
     Returns
     -------
@@ -141,7 +151,7 @@ def get_access_clip_info(name):
         If the filename could not be matched.
     """
 
-    m = match_name(name, re_type="access_csv")
+    m = match_name(name, re_type="new_access_csv")
 
     return m.group("talker"), int(m.group("batch")), int(m.group("word")), m.group("cname")
 

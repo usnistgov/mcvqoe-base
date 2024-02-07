@@ -28,6 +28,9 @@ def fill_log(test_obj):
     info = {}
 
     # ---------------------------[RadioInterface info]---------------------------
+    
+    # Skip the RI version info change if running soft timecode or no RI
+    skip_ri = False
 
     try:
         # Get ID and Version number from RadioInterface
@@ -35,64 +38,66 @@ def fill_log(test_obj):
         info["RI id"] = test_obj.ri.get_id()
     except AttributeError:
         # no RI for this object
-        pass
+        skip_ri = True
 
     # ---------------------[Get traceback for calling info]---------------------
 
-    # get a stack trace
+    # Get a stack trace
     tb = traceback.extract_stack()
 
-    # remove the last one cause that's this function
+    # Remove the last one cause that's this function
     tb = tb[:-1]
 
-    # extract important info from traceback
+    # Extract important info from traceback
     tb_info = [(os.path.basename(fs.filename), fs.name if fs.name != "<module>" else None) for fs in tb]
 
-    # add entry for calling file
+    # Add entry for calling file
     info["filename"] = tb_info[-1][0]
 
-    # format string with '->' between files
+    # Format string with '->' between files
     info["traceback"] = "->".join([f"{f}({n})" if n is not None else f for f, n in tb_info])
 
     # ---------------------------[Add MCV QoE version]---------------------------
 
     info["mcvqoe version"] = mcvqoe.base.version
     
-    # Change RI Version if running simulation
-    if info["RI version"] == info["mcvqoe version"]:
-        
-        info["RI version"] = "Simulation (no real RI)"
+    if skip_ri == False:
+        # Change RI Version if running simulation
+        if info["RI version"] == info["mcvqoe version"]:
+            
+            info["RI version"] = "Simulation (no real RI)"
 
     # ----------------------[Add Measurement class version]----------------------
 
     if test_obj.__class__.__name__ == "measure":
-        # get module for test_obj
+        # Get module for test_obj
         module = test_obj.__class__.__module__
     else:
         # TESTING : print base classes
         for base in test_obj.__class__.__bases__:
-            # see if we have subclassed a measure class
+            # See if we have subclassed a measure class
             if base.__name__ == "measure":
-                # get module from this class
+                # Get module from this class
                 module = base.__module__
-                # we are done
+                # We are done
                 break
         else:
-            # could not find module
+            # Could not find module
             module = None
             warnings.warn(f"Unable to find measure class for {test_obj.__class__.__name__}", category=RuntimeWarning)
 
-    # set default version
+    # Set default version
     info["test version"] = "Unknown"
 
     if module:
-        # import base level module
+        # Import base level module
         mod = importlib.import_module(module)
         try:
             info["test version"] = mod.version
         except AttributeError as e:
             warnings.warn(f"Unable to get version {e}", category=RuntimeWarning)
             pass
+        
     # ------------------------------[Add OS info]------------------------------
 
     info["os name"] = platform.system()
@@ -101,7 +106,7 @@ def fill_log(test_obj):
 
     # ---------------------------[Fill Arguments list]---------------------------
 
-    # class properties to skip in all cases
+    # Class properties to skip in all cases
     standard_skip = ["no_log", "info", "progress_update", "rng", "user_check"]
     arg_list = []
 
@@ -117,10 +122,9 @@ def fill_log(test_obj):
 
     return info
 
-
 def format_text_block(text):
     """
-    format text block for log.
+    Format text block for log.
 
     This writes out a, possibly, multi line text block to the log. It is used to
     write out both pre and post test notes.
@@ -135,7 +139,6 @@ def format_text_block(text):
         return ""
 
     return "".join(["\t" + line + "\n" for line in text.splitlines(keepends=False)])
-
 
 def pre(info={}, outdir="", test_folder=""):
     """
@@ -153,7 +156,7 @@ def pre(info={}, outdir="", test_folder=""):
         The current test directory to write to.
     """
 
-    # length to pad test params to
+    # Length to pad test params to
     pad_len = 10
 
     # Add 'outdir' to tests.log path
@@ -215,11 +218,11 @@ def post(info={}, outdir="", test_folder=""):
             header = "===Post-Test Notes==="
             notes = info.get("Post Test Notes", "")
 
-        # write header
+        # Write header
         file.write(header + "\n")
-        # write notes
+        # Write notes
         file.write(format_text_block(notes))
-        # write end
+        # Write end
         file.write("===End Test===\n\n")
         
     # Add test's specific log file to folder if given
@@ -237,9 +240,9 @@ def post(info={}, outdir="", test_folder=""):
                 header = "===Post-Test Notes==="
                 notes = info.get("Post Test Notes", "")
 
-            # write header
+            # Write header
             file.write(header + "\n")
-            # write notes
+            # Write notes
             file.write(format_text_block(notes))
-            # write end
+            # Write end
             file.write("===End Test===\n\n")
