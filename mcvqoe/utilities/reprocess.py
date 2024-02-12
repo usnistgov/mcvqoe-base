@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 
 import argparse
-import csv
 import importlib.resources
 import mcvqoe
 import os.path
-import scipy.io.wavfile
 import sys
 import tempfile
 
 # Expected path components for csv files
-csv_path_names = (("Access_Time", "Intelligibility", "Mouth_2_Ear", "PSuD", "Transmit_Volume_Optimization"), ("MCV-QoE"))
+# Not sure this is even needed with new file/folder structure implemented in 2023
+csv_path_names = (("Access_Time", "Intelligibility", "Mouth_2_Ear", "PSuD",
+                   "Transmit_Volume_Optimization"), ("MCV-QoE"))
 
 def make_parser():
 
@@ -21,7 +21,8 @@ def make_parser():
     parser.add_argument('datafile', default=None, type=str,
                         help='CSV file from test to reprocess')
     parser.add_argument('outfile', default=None, type=str, nargs='?',
-                        help='file to write reprocessed CSV data to. Can be the same name as datafile to overwrite results. if omitted output will be written to stdout')
+                        help="file to write reprocessed CSV data to. Can be the same name as datafile to overwrite results.\n" +
+                        "if omitted output will be written to stdout")
     parser.add_argument('-m', '--measurement', type=str, default=None, metavar='M',
                         help='measurement to use to do reprocessing')
     parser.add_argument('--audio-path', type=str, default=None, metavar='P', dest='audio_path',
@@ -111,7 +112,7 @@ def main():
             with open(out_name, 'rt') as out_file:
                 dat = out_file.read()
             print(dat)
-            print(f'Reprocessing complete', file=sys.stderr)
+            print('Reprocessing complete', file=sys.stderr)
         else:
             print(f'Reprocessing complete for \'{out_name}\'', file=sys.stderr)
 

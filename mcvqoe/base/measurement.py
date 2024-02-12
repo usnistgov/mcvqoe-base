@@ -167,10 +167,13 @@ class Measure:
                 os.makedirs(wavdir, exist_ok=True)
         
                 # generate csv name
-                self.data_filename.append(os.path.join(self.data_dirs[itr], f"{base_filename}.csv"))
+                csv_name = os.path.join(self.data_dirs[itr], f"{base_filename}.csv")
+                # self.data_filename.append(os.path.join(self.data_dirs[itr], f"{base_filename}.csv"))
         
                 # generate temp csv name
                 temp_data_filename = os.path.join(self.data_dirs[itr], f"{base_filename}_TEMP.csv")
+                # Temporarily make the data filename the TEMP name
+                self.data_filename.append(temp_data_filename)
         
                 # ---------------------[Load Audio Files if Needed]---------------------
         
@@ -334,6 +337,12 @@ class Measure:
                         set_start = datetime.datetime.now().replace(microsecond=0)
     
                 # -----------------------------[Cleanup]-----------------------------
+                
+                # Add csv_name to self.data_filename
+                # This is done here just in case we abort during a test which causes
+                # errors later on since only the TEMP filename has been created
+                # ex.: FileNotFoundError when running through self.data_filename
+                self.data_filename[itr] = csv_name
     
                 # move temp file to real file
                 shutil.move(temp_data_filename, self.data_filename[itr])
@@ -341,12 +350,9 @@ class Measure:
                 # ---------------------------[Turn off RI LED]---------------------------
     
                 self.ri.led(1, False)
-        
-                # finally:
-                #     # self.post_write()
-                #     self.post_write(test_folder=self.data_dir)
             
         finally:
+                
             # Try just in case we don't have directories yet
             try:
                 # Sending lists so that post_write can handle multiple iterations

@@ -75,24 +75,24 @@ def twoloc_process(tx_name, extra_play=0, rx_name = None, outdir="",
     '''
     Process rx and tx files for a two location test.
     
-    This writes a .csv file to data/csv and wave files to data/wav for a test. 
+    This writes a .csv file to ~home\documents\MCV-QoE\<test type>\<test>Reprocess
+    and wave files to ~home\documents\MCV-QoE\<test type>\<test>Reprocess\wav
+    for a test. 
 
     Parameters
     ----------
     tx_name : string
-        path to the transmit .csv file. If this is a relative path than
-        `[outdir]/data/csv` is searched.
+        Path to the transmit .csv. User is forced to select a csv file
     extra_play : float, default=0
-        Extra audio to add after tx clip stopped. This mayb be used, in some
+        Extra audio to add after tx clip stopped. This maybe used, in some
         cases, to correct for data that was recorded with a poorly chosen
         overplay.
     rx_name : string, None
-        Name of the receive .wav file. If this is a relative path than
-        `[outdir]/data/csv` is searched. If this is None then `data/2loc_rx-data`
-        is searched.
+        Name of the receive .wav. User is forced to choose a wave file.
     outdir : string, default=""
         Directory that contains the `data/` folder where data will be read from
-        and written to.
+        and written to. This is auto defaulted to our standard
+        ~home\documents\MCV-QoE folder to avoid errors.
     progress_update : function, default=terminal_user
         Function to call with updates on processing progress. 
         

@@ -54,11 +54,11 @@ def match_name(name, re_type="new_access_csv", raise_error=True):
         The name of the measurement file. This can be a fully qualified path or
         just the name of the file.
 
-    re_type : str, default="universal"
-        The type of re to use for the match. Currently the only valid values are
-        "universal" (default) and "access_csv". Universal should match any name.
+    re_type : str, default="new_access_csv"
+        The type of re to use for the match. Universal should match any name.
         While access_csv will only match access time csv files that contain a
-        clip name.
+        clip name. "new" and "new_access_csv" should work with the new file
+        structure implemented late 2023.
 
     Returns
     -------
@@ -98,11 +98,11 @@ def get_meas_basename(name, re_type="new_access_csv"):
         The name of the measurement file. This can be a fully qualified path or
         just the name of the file.
 
-    re_type : str, default="universal"
-        The type of re to use for the match. Currently the only valid values are
-        "new" (default), "universal" and "access_csv". New should match the newer 
-        file structure naming scheme. Universal should match any name. While access_csv 
-        will only match access time csv files that contain a clip name.
+    re_type : str, default="new_access_csv"
+        The type of re to use for the match. "new" should match the newer 
+        file structure naming scheme. "universal" should match any name of the old scheme. 
+        "access_csv" will only match access time csv files that contain a clip name.
+        "new_access_csv" is default and will work with the scheme created in late 2023.
 
     Returns
     -------

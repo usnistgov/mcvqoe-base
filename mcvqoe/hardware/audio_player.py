@@ -1,15 +1,10 @@
 import contextlib
 import datetime
-import math
-import os
 import queue
 import sys
 import threading
-from fractions import Fraction
 
 import numpy as np
-import scipy.io.wavfile
-import scipy.signal
 import sounddevice as sd
 import soundfile as sf
 
@@ -17,7 +12,7 @@ from mcvqoe.timing.soft_timecode import soft_time_fmt
 
 try:
     import ctypes
-    import threading
+    
 
     class ThreadRecStop:
         """
@@ -41,7 +36,7 @@ try:
         Record audio
 
         >>> import mcvqoe.hardware.AudioPlayer
-        >>> ap=mcvqoe.hardware.AudioPlayer(fs=int(48e3))
+        >>> ap = mcvqoe.hardware.AudioPlayer(fs=int(48e3))
         >>> ap.record('test.wav')
 
         """
@@ -144,7 +139,6 @@ except:
     WinRecStop = None
 
 try:
-    import sys
     import termios
     import tty
 
@@ -318,13 +312,13 @@ class AudioPlayer:
         self.rec_stop = DefaultRecStop()
 
 
-        #get properties from kwargs
+        # get properties from kwargs
         for k, v in kwargs.items():
             if hasattr(self, k):
                 setattr(self, k, v)
-            #check if the 'fs' argument was given
+            # check if the 'fs' argument was given
             elif k == 'fs':
-                #fs gets translated to sample_rate for legacy purposes
+                # fs gets translated to sample_rate for legacy purposes
                 self.sample_rate = v
             else:
                 raise TypeError(f"{k} is not a valid keyword argument")
@@ -332,7 +326,7 @@ class AudioPlayer:
         try:
             self.device = self.find_device(device_str)
         except RuntimeError:
-            #no device found
+            # no device found
             self.device = None
 
     @staticmethod
@@ -371,9 +365,9 @@ class AudioPlayer:
 
         """
 
-        #check that device is set
+        # check that device is set
         if not self.device:
-            RuntimeError(f'No audio device found')
+            RuntimeError('No audio device found')
 
         # get the highest numbered channel
         # this will be the number of channels that will be played
@@ -437,6 +431,7 @@ class AudioPlayer:
             A list of the names of the channels in the order they will be in in
             the recording file.
         """
+        
         chan_map = []
         chan_names = []
         for k, v in self.rec_chans.items():
@@ -481,14 +476,14 @@ class AudioPlayer:
         now do the same but also output the start signal on channel 1 and record
         the PTT signal on channel 1.
 
-        >>> ap.playback_chans={'tx_voice':0,'start_signal':1}
-        >>> ap.rec_chans={'rx_voice':0,'PTT_signal':1}
+        >>> ap.playback_chans = {'tx_voice':0,'start_signal':1}
+        >>> ap.rec_chans = {'rx_voice':0,'PTT_signal':1}
         >>> ap.play_record(tx_voice,'test.wav')
         """
 
-        #check that device is set
+        # check that device is set
         if not self.device:
-            RuntimeError(f'No audio device found')
+            RuntimeError('No audio device found')
 
         if len(tx_voice.shape) == 2:
             if tx_voice.shape[1] != 1:
@@ -516,7 +511,8 @@ class AudioPlayer:
             # Add start signal to audio
             if k == "start_signal":
                 # Signal frequency
-                f_sig = 1e3
+                # Unused?
+                # f_sig = 1e3
                 # Signal time
                 t_sig = 22e-3
                 # Calculate time for playback
@@ -641,6 +637,7 @@ class AudioPlayer:
         Will run as long as there is audio data to play.
 
         """
+        
         if self._time_encode:
             # get time
             tobj = datetime.datetime.utcnow()

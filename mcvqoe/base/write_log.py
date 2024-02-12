@@ -1,8 +1,6 @@
-import datetime
 import importlib
 import os
 import platform
-import shutil
 import traceback
 import warnings
 
@@ -30,6 +28,7 @@ def fill_log(test_obj):
     # ---------------------------[RadioInterface info]---------------------------
     
     # Skip the RI version info change if running soft timecode or no RI
+    # Without this the test will error out
     skip_ri = False
 
     try:
