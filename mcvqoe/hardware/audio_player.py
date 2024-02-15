@@ -30,18 +30,10 @@ try:
         See Also
         --------
         mcvqoe.hardware.AudioPlayer : ThreadRecStop works with AudioPlayer.record
-
-        Examples
-        --------
-        Record audio
-
-        >>> import mcvqoe.hardware.AudioPlayer
-        >>> ap = mcvqoe.hardware.AudioPlayer(fs=int(48e3))
-        >>> ap.record('test.wav')
-
         """
 
         def _input(self):
+            
             print("Press enter to stop")
             # wait for input
             input()
@@ -49,6 +41,7 @@ try:
             self._done = True
 
         def __enter__(self):
+            
             self._done = False
             self.thread = threading.Thread(target=self._input, name="Console_Rec_input")
             self.thread.start()
@@ -63,9 +56,11 @@ try:
             bool
                 True if recording should stop, False otherwise
             """
+            
             return self._done
 
         def __exit__(self, exc_type, exc_value, exc_traceback):
+            
             if self.thread.is_alive():
                 thread_id = self.thread.get_ident()
                 res = ctypes.pythonapi.PyThreadState_SetAsyncExc(
@@ -76,12 +71,12 @@ try:
                     print("Error while stopping thread")
             return False
 
-
 except:
     ThreadRecStop = None
 
 try:
     import msvcrt
+
 
     class WinRecStop:
         """
@@ -98,22 +93,15 @@ try:
         See Also
         --------
         mcvqoe.hardware.AudioPlayer : WinRecStop works with AudioPlayer.record
-
-        Examples
-        --------
-        Record audio using WinRecStop to stop the recording
-
-        >>> import mcvqoe.hardware.AudioPlayer
-        >>> ap=mcvqoe.hardware.AudioPlayer(fs=int(48e3))
-        >>> ap.record('test.wav',rec_stop=WinRecStop())
-
         """
 
         def __enter__(self):
+            
             print("press any key to stop")
             return self
 
         def __exit__(self, exc_type, exc_value, exc_traceback):
+            
             return False
 
         def is_done(self):
@@ -125,6 +113,7 @@ try:
             bool
                 True if recording should stop, False otherwise
             """
+            
             if msvcrt.kbhit():
                 # flush all keys
                 while msvcrt.kbhit():
@@ -133,7 +122,6 @@ try:
                 return True
             return False
 
-
 except:
     # there was a problem, set to None
     WinRecStop = None
@@ -141,6 +129,7 @@ except:
 try:
     import termios
     import tty
+
 
     class TermiosRecStop:
         """
@@ -159,18 +148,10 @@ try:
         See Also
         --------
         mcvqoe.hardware.AudioPlayer : TermiosRecStop works with AudioPlayer.record
-
-        Examples
-        --------
-        Record audio using TermiosRecStop to stop the recording
-
-        >>> import mcvqoe.hardware.AudioPlayer
-        >>> ap=mcvqoe.hardware.AudioPlayer(fs=int(48e3))
-        >>> ap.record('test.wav',rec_stop=TermiosRecStop())
-
         """
 
         def __enter__(self):
+            
             print("press any key to stop")
             # get stdin file descriptor
             self.fd = sys.stdin.fileno()
@@ -181,6 +162,7 @@ try:
             return self
 
         def __exit__(self, exc_type, exc_value, exc_traceback):
+            
             termios.tcsetattr(self.fd, termios.TCSADRAIN, self.old_settings)
             return False
 
@@ -193,12 +175,12 @@ try:
             bool
                 True if recording should stop, False otherwise
             """
+            
             ch = sys.stdin.read(1)
             if len(ch) == 0:
                 return True
             else:
                 return False
-
 
 except:
     TermiosRecStop = None
@@ -286,15 +268,17 @@ class AudioPlayer:
     play 48 kHz audio stored in tx_voice and record in a file named 'test.wav'.
 
     >>> import mcvqoe.hardware.AudioPlayer
-    >>> ap=mcvqoe.hardware.AudioPlayer(fs=int(48e3))
-    >>> ap.play_record(tx_voice,'test.wav')
+    >>> import mcvqoe.base.misc
+    >>> rate, tx_voice = mcvqoe.base.audio_read("Tx_F1_harvard_phrases.wav")
+    >>> ap = mcvqoe.hardware.AudioPlayer(fs=int(48e3))
+    >>> ap.play_record(tx_voice, 'test.wav')
 
     now do the same but also output the start signal on channel 1 and record the
     PTT signal on channel 1.
 
-    >>> ap.playback_chans={'tx_voice':0,'start_signal':1}
-    >>> ap.rec_chans={'rx_voice':0,'PTT_signal':1}
-    >>> ap.play_record(tx_voice,'test.wav')
+    >>> ap.playback_chans = {'tx_voice':0, 'start_signal':1}
+    >>> ap.rec_chans = {'rx_voice':0, 'PTT_signal':1}
+    >>> ap.play_record(tx_voice, 'test.wav')
     """
 
     def __init__(
@@ -310,7 +294,6 @@ class AudioPlayer:
         self.rec_chans = {"rx_voice": 0}
         self.playback_chans = {"tx_voice": 0}
         self.rec_stop = DefaultRecStop()
-
 
         # get properties from kwargs
         for k, v in kwargs.items():
@@ -345,9 +328,10 @@ class AudioPlayer:
             raise RuntimeError('No suitable audio interfaces found')
 
     def __repr__(self):
-        string_props=('device','sample_rate','overplay','rec_chans','playback_chans')
+        
+        string_props = ('device','sample_rate','overplay','rec_chans','playback_chans')
 
-        props=[]
+        props = []
 
         for prop in string_props:
             props.append(f'{prop} = {repr(getattr(self, prop))}')
@@ -362,7 +346,6 @@ class AudioPlayer:
         ----------
         filename : str
             The file name to write audio to.
-
         """
 
         # check that device is set
@@ -466,19 +449,20 @@ class AudioPlayer:
         Examples
         --------
 
-        play 48 kHz audio stored in tx_voice and record in a file named
-        'test.wav'.
-
+        play 48 kHz audio stored in tx_voice and record in a file named 'test.wav'.
+    
         >>> import mcvqoe.hardware.AudioPlayer
-        >>> ap=mcvqoe.hardware.AudioPlayer(fs=int(48e3))
-        >>> ap.play_record(tx_voice,'test.wav')
-
-        now do the same but also output the start signal on channel 1 and record
-        the PTT signal on channel 1.
-
-        >>> ap.playback_chans = {'tx_voice':0,'start_signal':1}
-        >>> ap.rec_chans = {'rx_voice':0,'PTT_signal':1}
-        >>> ap.play_record(tx_voice,'test.wav')
+        >>> import mcvqoe.base.misc
+        >>> rate, tx_voice = mcvqoe.base.audio_read("Tx_F1_harvard_phrases.wav")
+        >>> ap = mcvqoe.hardware.AudioPlayer(fs=int(48e3))
+        >>> ap.play_record(tx_voice, 'test.wav')
+    
+        now do the same but also output the start signal on channel 1 and record the
+        PTT signal on channel 1.
+    
+        >>> ap.playback_chans = {'tx_voice':0, 'start_signal':1}
+        >>> ap.rec_chans = {'rx_voice':0, 'PTT_signal':1}
+        >>> ap.play_record(tx_voice, 'test.wav')
         """
 
         # check that device is set
@@ -690,7 +674,6 @@ class AudioPlayer:
         """
         Callback function for the stream.
         Will run as long as there is audio data to play.
-
         """
 
         if status:
