@@ -1,0 +1,6 @@
+{
+    "channels": [
+        "rx_voice",
+        "IRIGB_timecode"
+    ]
+}

@@ -1,4 +1,5 @@
-import csv
+# TODO: add abcmrt as mcvqoe requirement (pypi abcmrt16)
+
 import glob
 import json
 import math
@@ -6,15 +7,18 @@ import mcvqoe.base
 import os
 import re
 import shutil
+import csv
 
 import numpy as np
+import abcmrt
 
-from .audio_chans import timecode_chans
+from mcvqoe.timing.audio_chans import timecode_chans
 from datetime import datetime, timedelta
 from mcvqoe.base.terminal_user import terminal_progress_update
 from mcvqoe.delay import ITS_delay_est
-from .timecode import time_decode
-from ..utilities.reprocess import get_module, reprocess_file
+from mcvqoe.timing.timecode import time_decode 
+from mcvqoe.delay.sliding_delay import sliding_delay_estimates
+from mcvqoe.utilities.reprocess import get_module, reprocess_file
 
 
 # This should break up the folder name to determine Tx/Rx, date, and test type
@@ -66,10 +70,14 @@ def find_nearest(array,value):
     else:
         return idx
 
+# TODO: remove default argument for rx_name and make required here and in argparse below.
+# TODO: allow for relative paths to tx_name and rx_name, now it gives: RuntimeError: unable to extract wav folder from 'Tx_capture_Intell_18-Jan-2024_15-19-04.csv'
 
-def twoloc_process(tx_name, extra_play=0, rx_name = None, outdir="",
+def twoloc_process(tx_name, extra_play=0, 
+                        rx_name = None, 
+                        outdir="",
                         progress_update=terminal_progress_update,
-                        align_mode='fit',
+                        align_mode='fixed', 
                         **kwargs       #get kwargs to accept arbitrary arguments
                    ):
     '''
@@ -93,6 +101,10 @@ def twoloc_process(tx_name, extra_play=0, rx_name = None, outdir="",
         Directory that contains the `data/` folder where data will be read from
         and written to. This is auto defaulted to our standard
         ~home\documents\MCV-QoE folder to avoid errors.
+    test_type : string, default='intelligibility'
+        Either 'intelligibility' or 'm2e'. Intelligibility also estimates m2e latency.
+    align_mode : string, defualt = 'fixed'
+        Method used to align sent and received audio signals. Fixed is best behaving.
     progress_update : function, default=terminal_user
         Function to call with updates on processing progress. 
         
@@ -172,7 +184,13 @@ def twoloc_process(tx_name, extra_play=0, rx_name = None, outdir="",
     # Tolerance for timecode variation
     tc_warn_tol = 0.0001
 
+    #determine test type 
+    if tx_tt not in ('m2e', 'Intelligibility'):
+            raise RuntimeError(f"'test_type' argument must be 'm2e' or 'Intelligibility' not {test_type}")
     
+    if tx_tt== 'Intelligibility':
+        if align_mode != 'fixed':
+            progress_update('warning', 0, 0, msg=f"Only align_mode='fixed' gives reliable intelligibility scores." )
     # Should be in same test folder as all other data
     # --------------------------[Locate input data]--------------------------
     
@@ -288,6 +306,11 @@ def twoloc_process(tx_name, extra_play=0, rx_name = None, outdir="",
         rx_fs, rx_dat = mcvqoe.base.audio_read(rx_name)
     
     rx_dat = mcvqoe.base.audio_float(rx_dat)
+
+    # check fs
+    if tx_tt == 'Intelligibility':
+        if(abcmrt.fs != rx_fs):
+               raise RuntimeError('Recorded intelligibility sample rate does not match abcmrt!')
     
     #--------------------Prep work for calculating delays--------------------
 
@@ -319,27 +342,27 @@ def twoloc_process(tx_name, extra_play=0, rx_name = None, outdir="",
     
     
     ###### This block outputs for diagnostic purposes gsh3#######
-    def time_formatter(dt_s):
-        days = []
-        seconds = []
-        for dt in dt_s:
-            day = f"{dt.year}_{dt.month}_{dt.day}"  
-            days.append(day)
-            second = dt.hour*60*60 + dt.minute*60 + dt.second
-            seconds.append(second)
-        days = set(days)
-        return days, seconds
+    # def time_formatter(dt_s):
+    #     days = []
+    #     seconds = []
+    #     for dt in dt_s:
+    #         day = f"{dt.year}_{dt.month}_{dt.day}"  
+    #         days.append(day)
+    #         second = dt.hour*60*60 + dt.minute*60 + dt.second
+    #         seconds.append(second)
+    #     days = set(days)
+    #     return days, seconds
         
-    days, seconds = time_formatter(rx_time) #
+    # days, seconds = time_formatter(rx_time) #
     
-    rx_dict = {'rx_date': list(days), 
-               'rx_times': seconds,  # +gsh3
-               'rx_snum': rx_snum.tolist()           # +gsh3
-              } 
-    rx_time_name = os.path.splitext(rx_name)[0]+'_time.json'     
-    output_json = json.dumps(rx_dict)        # +gsh3            
-    with open(rx_time_name, 'w') as output:  # +gsh3            
-        output.write(output_json)            # +gsh3            
+    # rx_dict = {'rx_date': list(days), 
+    #            'rx_times': seconds,  # +gsh3
+    #            'rx_snum': rx_snum.tolist()           # +gsh3
+    #           } 
+    # rx_time_name = os.path.splitext(rx_name)[0]+'_time.json'     
+    # output_json = json.dumps(rx_dict)        # +gsh3            
+    # with open(rx_time_name, 'w') as output:  # +gsh3            
+    #     output.write(output_json)            # +gsh3            
    ##############################################################
     
     # Make rx_time a numpy array
@@ -366,6 +389,13 @@ def twoloc_process(tx_name, extra_play=0, rx_name = None, outdir="",
         
         # Create dict reader
         reader = csv.DictReader(tx_csv_f)
+        header = reader.fieldnames
+
+        if tx_tt == 'Intelligibility':
+            header.append('m2e_latency')
+
+        else: 
+            header.append('Intelligibility')
         
         # Create dict writer, same fields as input
         writer = csv.DictWriter(out_csv_f, reader.fieldnames)
@@ -437,150 +467,157 @@ def twoloc_process(tx_name, extra_play=0, rx_name = None, outdir="",
                 
             
             # Decode timecode
-            tx_time, tx_snum = time_decode(rx_tc_type, tx_rec_tca, tx_rec_fs)
-
-
-            ##### diagnostic block from gsh3 ######################################
-            
-            # #tx_json_wriiter ### from gsh3
-            # days, seconds = time_formatter(tx_time)
-    
-            # tx_dict = {'tx_date': list(days), 
-            #            'tx_times': seconds,  # +gsh3
-            #            'tx_snum': tx_snum.tolist()           # +gsh3
-            #           }
-            
-            # output_json = json.dumps(tx_dict)        # +gsh3
-            # with open(f"{row['Filename']}_{row['Timestamp']}.json", 'w') as output:
-            #     output.write(output_json)            # +gsh3
-            #########################################################################
-            
-            
-            if align_mode == 'fixed':
-                # Array for matching sample numbers
-                tx_match_samples = []
-                rx_match_samples = []
-
-
-                for time, snum in zip(tx_time, tx_snum):
-                    
-                    # Calculate difference from rx timecode
-                    time_diff = abs(rx_time - time)
-                    
-                    # Find minimum difference
-                    min_v = np.amin(time_diff)
-
-                    # Check that difference is small
-                    if min_v < timedelta(seconds=0.5):
-
-                        # Get matching index
-                        idx = np.argmin(time_diff)
-
-                        # Append sample number
-                        tx_match_samples.append(snum)
-                        rx_match_samples.append(rx_snum[idx])
-
-                # Get matching frame start indicies
-                mfr = np.column_stack((tx_match_samples, rx_match_samples))
-
-                # Get difference between matching timecodes
-                mfd = np.diff(mfr, axis=0)
-
-
-                # Get ratio of samples between matches
-                mfdr = mfd[:, 0] / mfd[:, 1]
-
-            
-                if not np.all(np.logical_and(mfdr < (1+tc_warn_tol), mfdr>(1-tc_warn_tol))):
-                    progress_update('warning', total_trials, trial, f'Timecodes out of tolerence for trial {trial+1}. {mfdr}')
-
-                # Calculate first rx sample to use
-                first = mfr[0, 1]-mfr[0, 0]
-
-                # Calculate last rx sample to use
-                last = mfr[-1,1] + len(tx_rec_tca) - mfr[-1, 0] + extra_samples - 1
-            elif align_mode == 'interpolate' or align_mode =='fit':
-                tx_tnum = timedelta_total_seconds(tx_time - ref_time)
-
-                # Do a linear fit of the timecode data to get index vs time
-                fit = np.polyfit(tx_snum, tx_tnum, 1)
-                # Get model
-                tc_fun = np.poly1d(fit)
-
-                # Get time of start and end of tx clip
-                tx_start_time = tc_fun(0)
-                tx_end_time = tc_fun(len(tx_rec_tca) + extra_samples - 1)
-
-                if align_mode == 'interpolate':
-                    # Get indices in the Rx array
-                    first = find_nearest(rx_interp, tx_start_time)
-                    last  = find_nearest(rx_interp, tx_end_time)
-                elif align_mode == 'fit':
-                    first = math.floor(rx_idx_fun(tx_start_time))
-                    last  = math.ceil(rx_idx_fun(tx_end_time))
-
-            else:
-                raise ValueError(f'Invalid value, \'{align_mode}\' for align_mode')
-            # Get rx recording data from big array
-            rx_rec = rx_dat[first:last+1, :]
-            # Remove timecode
-            rx_rec = np.delete(rx_rec, rx_tc_idx, 1)
-            # Diagnostic output gsh3
-            mcvqoe.base.audio_write(rx_align_rec, 48000, rx_rec)
-            
-            if tx_extra_chans:
-                # Add tx extra chans to rx extra chans
-                out_chans = tuple(rx_extra_chans+tx_extra_chans)
-
-                # Get the length of the longest array
-                new_len = np.max((rx_rec.shape[0], tx_extra_audio.shape[0]))
-
-                # Resize recording
-                rec_shape = list(rx_rec.shape)
-                rec_shape[0] = new_len
-                rx_rec.resize(tuple(rec_shape))
-
-                # Resize tx extra
-                tx_shape = list(tx_extra_audio.shape)
-                tx_shape[0] = new_len
-                tx_extra_audio.resize(tuple(tx_shape))
-
-                # Both arrays should now be the same length (in time)
-                out_audio = np.column_stack((rx_rec, tx_extra_audio))
-            else:
-                # No extra chans, all out chans from rx
-                out_chans = rx_extra_chans
-                out_audio = rx_rec
-            
-            # Overwrite new channels to csv
-            row['channels'] = mcvqoe.base.audio_channels_to_string(out_chans)
-            
-            ## Find the phrase file if only the timing is present
-            if tx_extra_audio is None:
-                full_tx_phrase_name = os.path.join(tx_wav_path, 'Tx_' + row['Filename'] + '.wav')
-                if not os.path.exists(full_tx_phrase_name):
-                    raise ValueError(f'cannot find {full_tx_phrase_name}')
+            try:
+                tx_time, tx_snum = time_decode(rx_tc_type, tx_rec_tca, tx_rec_fs)
                 
-                tx_phrase_fs, tx_phrase_dat = mcvqoe.base.audio_read(full_tx_phrase_name)
-                if tx_phrase_fs != rx_fs:
-                    raise ValueError(f'RX and TX sampling not the same for {full_tx_phrase_name}')
-                tx_extra_chans = mcvqoe.base.audio_float(tx_phrase_dat)
-            
-            rx_phrase = np.concatenate(rx_rec)
-       
-            ###### this block from gsh3 ########
-            
-            # Run delay with final position, and the number of samples at which audio aligns
-            (pos, delay_points) = ITS_delay_est(tx_extra_chans, 
-                                                rx_phrase, 
-                                                'f', 
-                                                fs=rx_fs, 
-                                                dlyBounds=[np.NINF, np.inf], 
-                                                min_corr=0)
+                
+                if align_mode == 'fixed':
+                    # Array for matching sample numbers
+                    tx_match_samples = []
+                    rx_match_samples = []
 
-            delay_time = delay_points/tx_phrase_fs 
-            row['m2e_latency'] = delay_time 
-            ###################################
+
+                    for time, snum in zip(tx_time, tx_snum):
+                        
+                        # Calculate difference from rx timecode
+                        time_diff = abs(rx_time - time)
+                        
+                        # Find minimum difference
+                        min_v = np.amin(time_diff)
+
+                        # Check that difference is small
+                        if min_v < timedelta(seconds=0.5):
+
+                            # Get matching index
+                            idx = np.argmin(time_diff)
+
+                            # Append sample number
+                            tx_match_samples.append(snum)
+                            rx_match_samples.append(rx_snum[idx])
+
+                    # Get matching frame start indicies
+                    mfr = np.column_stack((tx_match_samples, rx_match_samples))
+
+                    # Get difference between matching timecodes
+                    mfd = np.diff(mfr, axis=0)
+
+
+                    # Get ratio of samples between matches
+                    mfdr = mfd[:, 0] / mfd[:, 1]
+
+                
+                    if not np.all(np.logical_and(mfdr < (1+tc_warn_tol), mfdr>(1-tc_warn_tol))):
+                        progress_update('warning', total_trials, trial, f'Timecodes out of tolerence for trial {trial+1}. {mfdr}')
+
+                    # Calculate first rx sample to use
+                    first = mfr[0, 1]-mfr[0, 0]
+
+                    # Calculate last rx sample to use
+                    last = mfr[-1,1] + len(tx_rec_tca) - mfr[-1, 0] + extra_samples - 1
+                elif align_mode == 'interpolate' or align_mode =='fit':
+                    tx_tnum = timedelta_total_seconds(tx_time - ref_time)
+
+                    # Do a linear fit of the timecode data to get index vs time
+                    fit = np.polyfit(tx_snum, tx_tnum, 1)
+                    # Get model
+                    tc_fun = np.poly1d(fit)
+
+                    # Get time of start and end of tx clip
+                    tx_start_time = tc_fun(0)
+                    tx_end_time = tc_fun(len(tx_rec_tca) + extra_samples - 1)
+
+                    if align_mode == 'interpolate':
+                        # Get indices in the Rx array
+                        first = find_nearest(rx_interp, tx_start_time)
+                        last  = find_nearest(rx_interp, tx_end_time)
+                    elif align_mode == 'fit':
+                        first = math.floor(rx_idx_fun(tx_start_time))
+                        last  = math.ceil(rx_idx_fun(tx_end_time))
+
+                else:
+                    raise ValueError(f'Invalid value, \'{align_mode}\' for align_mode')
+                # Get rx recording data from big array
+                rx_rec = rx_dat[first:last+1, :]
+                # Remove timecode
+                rx_rec = np.delete(rx_rec, rx_tc_idx, 1)
+                # Diagnostic output gsh3
+                mcvqoe.base.audio_write(rx_align_rec, 48000, rx_rec)
+                
+                if tx_extra_chans:
+                    # Add tx extra chans to rx extra chans
+                    out_chans = tuple(rx_extra_chans+tx_extra_chans)
+
+                    # Get the length of the longest array
+                    new_len = np.max((rx_rec.shape[0], tx_extra_audio.shape[0]))
+
+                    # Resize recording
+                    rec_shape = list(rx_rec.shape)
+                    rec_shape[0] = new_len
+                    rx_rec.resize(tuple(rec_shape))
+
+                    # Resize tx extra
+                    tx_shape = list(tx_extra_audio.shape)
+                    tx_shape[0] = new_len
+                    tx_extra_audio.resize(tuple(tx_shape))
+
+                    # Both arrays should now be the same length (in time)
+                    out_audio = np.column_stack((rx_rec, tx_extra_audio))
+                else:
+                    # No extra chans, all out chans from rx
+                    out_chans = rx_extra_chans
+                    out_audio = rx_rec
+                
+                # Overwrite new channels to csv
+                row['channels'] = mcvqoe.base.audio_channels_to_string(out_chans)
+                
+                ## Find the phrase file if only the timing is present
+                if tx_extra_audio is None:
+                    full_tx_phrase_name = os.path.join(tx_wav_path, 'Tx_' + row['Filename'] + '.wav')
+                    if not os.path.exists(full_tx_phrase_name):
+                        raise ValueError(f'cannot find {full_tx_phrase_name}')
+                    
+                    tx_phrase_fs, tx_phrase_dat = mcvqoe.base.audio_read(full_tx_phrase_name)
+                    if tx_phrase_fs != rx_fs:
+                        raise ValueError(f'RX and TX sampling not the same for {full_tx_phrase_name}')
+                    tx_extra_chans = mcvqoe.base.audio_float(tx_phrase_dat)
+                
+                rx_phrase = np.concatenate(rx_rec)
+           
+                ###### m2e estimates ########
+                
+                # Run delay with final position, and the number of samples at which audio aligns
+                (pos, delay_points) = ITS_delay_est(tx_extra_chans, 
+                                                    rx_phrase, 
+                                                    'f', 
+                                                    fs=rx_fs, 
+                                                    dlyBounds=[np.NINF, np.inf], 
+                                                    min_corr=0)
+
+                delay_time = delay_points/tx_phrase_fs 
+                row['m2e_latency'] = delay_time 
+                ###################################
+
+                ########## intelligibility calculation  ##############################
+                if tx_tt == 'Intelligibility':
+                    try:
+                        ### latency estimate to adjust time capture
+                        first     = first + delay_points*3//2
+                        last      = last + delay_points*3//2
+                        rx_rec    = rx_dat[first:last+1,:]
+                        rx_rec = np.delete(rx_rec,rx_tc_idx,1)
+                        rx_phrase = np.concatenate(rx_rec)
+                         
+                        word_num=abcmrt.file2number(full_tx_rec_name)  ### TX FILE NAME GOES HERE
+                    except:
+                        raise ValueError(f'cannot inturrpert {full_tx_rec_name} as an abcmrt phrase number')
+
+                    phi_hat, intelligibility=abcmrt.process(rx_phrase, word_num) ##RX VOICE AUDIO GOES HERE
+                    row['Intelligibility'] = intelligibility[0] #only a single list element
+
+            except:
+                progress_update('warning', 0, 0, msg=f'failed to align {row}')
+                pass
+                    ##################################
 
             # Create audiofile name/path for recording
             audioname = f'Rx{trial+1}_{row["Filename"]}.wav'
