@@ -901,6 +901,8 @@ class Measure:
                 except KeyError:
                     # fall back to only one channel
                     rec_chans = ("rx_voice",)
+                    
+                print(f"\n\n\nMEASUREMENT.PY\n\naudio_path: {audio_path}\n\nclip_name: {clip_name}\n\n")
                 new_dat = self.process_audio(
                         clip_index,
                         os.path.join(audio_path, clip_name),

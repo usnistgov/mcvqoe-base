@@ -1,5 +1,7 @@
 # TODO: add abcmrt as mcvqoe requirement (pypi abcmrt16)
-
+# This should already be the case
+import abcmrt
+import csv
 import glob
 import json
 import math
@@ -7,10 +9,8 @@ import mcvqoe.base
 import os
 import re
 import shutil
-import csv
 
 import numpy as np
-import abcmrt
 
 from mcvqoe.timing.audio_chans import timecode_chans
 from datetime import datetime, timedelta
@@ -184,9 +184,9 @@ def twoloc_process(tx_name, extra_play=0,
     # Tolerance for timecode variation
     tc_warn_tol = 0.0001
 
-    #determine test type 
-    if tx_tt not in ('m2e', 'Intelligibility'):
-            raise RuntimeError(f"'test_type' argument must be 'm2e' or 'Intelligibility' not {test_type}")
+    # Determine test type 
+    if tx_tt not in ('M2E', 'Intelligibility'):
+            raise RuntimeError(f"'test_type' argument must be 'M2E' or 'Intelligibility' not {tx_tt}")
     
     if tx_tt== 'Intelligibility':
         if align_mode != 'fixed':
@@ -393,9 +393,6 @@ def twoloc_process(tx_name, extra_play=0,
 
         if tx_tt == 'Intelligibility':
             header.append('m2e_latency')
-
-        else: 
-            header.append('Intelligibility')
         
         # Create dict writer, same fields as input
         writer = csv.DictWriter(out_csv_f, reader.fieldnames)
