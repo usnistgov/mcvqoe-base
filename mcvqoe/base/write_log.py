@@ -72,9 +72,10 @@ def fill_log(test_obj):
         # Get module for test_obj
         module = test_obj.__class__.__module__
     else:
-        # TESTING : print base classes
-        for base in test_obj.__class__.__bases__:
-            # See if we have subclassed a measure class
+        # base.__name__ provides only the most recently inherited class. mro() finds ALL inherited classes
+        # Need this deeper search to find the base "measure" class for the characterization test
+        for base in test_obj.__class__.mro():
+            # See if we have inherited from measure class
             if base.__name__ == "measure":
                 # Get module from this class
                 module = base.__module__
