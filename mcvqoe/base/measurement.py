@@ -207,7 +207,6 @@ class Measure:
                     if cp:
                         write_cp(out_name+'.csv',cp)
         
-        
                 # -------------------------[Generate CSV header]-------------------------
         
                 header, dat_format = self.csv_header_fmt()
@@ -260,7 +259,7 @@ class Measure:
     
                     # Pause the indicated amount to allow the radio to access the system
                     time.sleep(self.ptt_wait)
-    
+
                     clip_index = self.clipi[trial]
     
                     # Create audiofile name/path for recording
@@ -288,8 +287,6 @@ class Measure:
                     # add extra info
                     trial_dat["Timestamp"] = ts
                     trial_dat["Filename"] = clip_names[clip_index]
-                    trial_dat['Over_runs']  = 0
-                    trial_dat['Under_runs'] = 0
     
                     # -------------------[Delete file if needed]-------------------
                     
@@ -300,7 +297,6 @@ class Measure:
     
                     with open(temp_data_filename, "at") as f:
                         f.write(dat_format.format(**trial_dat))
-    
     
                     #------------------[Check if we should pause]------------------
     
@@ -902,7 +898,6 @@ class Measure:
                     # fall back to only one channel
                     rec_chans = ("rx_voice",)
                     
-                print(f"\n\n\nMEASUREMENT.PY\n\naudio_path: {audio_path}\n\nclip_name: {clip_name}\n\n")
                 new_dat = self.process_audio(
                         clip_index,
                         os.path.join(audio_path, clip_name),

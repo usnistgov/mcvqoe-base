@@ -611,7 +611,9 @@ def twoloc_process(tx_name, extra_play=0,
                     phi_hat, intelligibility=abcmrt.process(rx_phrase, word_num) ##RX VOICE AUDIO GOES HERE
                     row['Intelligibility'] = intelligibility[0] #only a single list element
 
-            except:
+            except Exception as err:
+                # TODO: Figure out a way to keep the test going if this happens? (Probably due to low Timecode audio)
+                print(f"\n\n{err}\n\n")
                 progress_update('warning', 0, 0, msg=f'failed to align {row}')
                 pass
                     ##################################
