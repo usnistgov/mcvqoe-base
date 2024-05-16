@@ -242,7 +242,7 @@ class Measure:
                     
                     # -----------------------[Update progress]-------------------------
                     
-                    if not self.progress_update("test", self.trials, trial):
+                    if not self.progress_update("test", self.trials, trial, gui_extras=self.gui_extras):
                         # turn off LED
                         self.ri.led(1, False)
                         print("Exit from user")
