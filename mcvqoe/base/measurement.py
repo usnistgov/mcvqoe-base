@@ -207,7 +207,6 @@ class Measure:
                     if cp:
                         write_cp(out_name+'.csv',cp)
         
-        
                 # -------------------------[Generate CSV header]-------------------------
         
                 header, dat_format = self.csv_header_fmt()
@@ -243,7 +242,7 @@ class Measure:
                     
                     # -----------------------[Update progress]-------------------------
                     
-                    if not self.progress_update("test", self.trials, trial):
+                    if not self.progress_update("test", self.trials, trial, gui_extras=self.gui_extras):
                         # turn off LED
                         self.ri.led(1, False)
                         print("Exit from user")
@@ -260,7 +259,7 @@ class Measure:
     
                     # Pause the indicated amount to allow the radio to access the system
                     time.sleep(self.ptt_wait)
-    
+
                     clip_index = self.clipi[trial]
     
                     # Create audiofile name/path for recording
@@ -288,8 +287,6 @@ class Measure:
                     # add extra info
                     trial_dat["Timestamp"] = ts
                     trial_dat["Filename"] = clip_names[clip_index]
-                    trial_dat['Over_runs']  = 0
-                    trial_dat['Under_runs'] = 0
     
                     # -------------------[Delete file if needed]-------------------
                     
@@ -300,7 +297,6 @@ class Measure:
     
                     with open(temp_data_filename, "at") as f:
                         f.write(dat_format.format(**trial_dat))
-    
     
                     #------------------[Check if we should pause]------------------
     
@@ -901,6 +897,7 @@ class Measure:
                 except KeyError:
                     # fall back to only one channel
                     rec_chans = ("rx_voice",)
+                    
                 new_dat = self.process_audio(
                         clip_index,
                         os.path.join(audio_path, clip_name),

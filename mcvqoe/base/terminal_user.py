@@ -9,6 +9,7 @@ def terminal_progress_update(
             delay="",
             file="",
             new_file="",
+            gui_extras=[],
         ):
     if (prog_type == 'proc'):
         if (current_trial == 0):
