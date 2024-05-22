@@ -354,9 +354,10 @@ class Measure:
                 # Sending lists so that post_write can handle multiple iterations
                 self.post_write(test_folder=self.data_dirs, file=self.data_filename)
                     
-            except AttributeError:
+            except AttributeError as e:
                 # Haven't created the self.data_dirs yet
                 print("Error occured before testing began")
+                print(f"\n\n{e}\n\n")
                 
         # Return filename list
         return self.data_filename
@@ -911,12 +912,13 @@ class Measure:
                 f_out.write(dat_format.format(**merged_dat))
                 
     def post_write(self, test_folder="", file=""):
-        """Provide a function to allow overwriting of post note function.
+        """
+        Provide a function to allow overwriting of post note function.
         
         This allows each test the ability to print the results into
         their repective tests.log file
         """
-        
+
         if self.get_post_notes:
             # get notes
             info = self.get_post_notes()
