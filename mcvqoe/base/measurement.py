@@ -614,7 +614,14 @@ class Measure:
             )
 
         finally:
-            self.post_write(test_folder=self.data_dir)
+            #self.post_write(test_folder=self.data_dir)
+            if self.get_post_notes:
+                # Get notes
+                info = self.get_post_notes()
+            else:
+                info = {}
+            # Finish log entry
+            log_post(info=info, outdir=self.outdir, test_folder=self.data_dir)
 
         # return filename in a list
         return (self.data_filename,)
@@ -692,8 +699,16 @@ class Measure:
                 json.dump({"channels": rec_names}, info_f)
 
         finally:
-            self.post_write(test_folder=self.data_dir)
+            #self.post_write(test_folder=self.data_dir)
+            if self.get_post_notes:
+                # Get notes
+                info = self.get_post_notes()
+            else:
+                info = {}
+            # Finish log entry
+            log_post(info=info, outdir=self.outdir, test_folder=self.data_dir)
 
+        # Return filename in a list
         return (self.data_filename,)
 
     def load_test_data(self, fname, load_audio=True, audio_path=None):
