@@ -7,6 +7,9 @@ from tkinter import scrolledtext
 import pkg_resources
 
 
+# This class and entire file was an early implementation of the GUI.
+# Basically we just collect the pre/post notes and have the user input parameters.
+# This code is no longer utilized.
 class TestInfoGui(tk.Tk):
     """
     Class to show a gui to get information on a test.
