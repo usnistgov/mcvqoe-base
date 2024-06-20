@@ -1,13 +1,14 @@
 import io
 import math
 import re
-from warnings import warn
 
 import serial
 import serial.tools.list_ports
 
+from warnings import warn
 
-# custom exception for commands
+
+# Custom exception for commands
 class CommandError(Exception):
     pass
 
@@ -49,7 +50,9 @@ class RadioInterface:
 
     If the serial port of the device is known it can be passed to the constructor.
     >>> ri = RadioInterface(port='COM12')
+    
     """
+    
     #USB PID/VID to use in search. Devices matching this PID/VID will be checked
     #This is a generic TI PID/VID that could get used by other things
     #TODO : do we want our own?
@@ -71,14 +74,14 @@ class RadioInterface:
             given, it is used without sending any commands to it.
         """
 
-        #set default values
+        # set default values
         self.debug = False
         self.default_radio = 1
 
-        #get properties from kwargs
+        # get properties from kwargs
         for k, v in kwargs.items():
             if hasattr(self, k):
-                #None value means keep defaults
+                # None value means keep defaults
                 if v is not None:
                     setattr(self, k, v)
             else:
@@ -87,11 +90,11 @@ class RadioInterface:
         if not port:
             ports = serial.tools.list_ports.comports()
             for p in ports:
-                #check for matching PID/VID
+                # check for matching PID/VID
                 if(not (p.vid==self._USB_VID and p.pid==self._USB_PID)):
                     if self.debug:
                         print(f"Skipping {p.device}, PID/VID does not match")
-                    #skip this device
+                    # skip this device
                     continue
                 try:
                     self._openPort(p.device)
@@ -123,7 +126,7 @@ class RadioInterface:
         if hasattr(self, "sobj"):
             # check if port is open
             if self.sobj:
-                #get the currently open port
+                # get the currently open port
                 props=[f'port = {repr(self.port_name)}']
 
                 for prop in string_props:
@@ -131,7 +134,7 @@ class RadioInterface:
 
                 return f'{type(self).__name__}({", ".join(props)})'
 
-        #otherwise port is not open give some sort of an indication
+        # otherwise port is not open give some sort of an indication
         return f'<inactive {type(self).__name__}>'
 
 
@@ -165,7 +168,7 @@ class RadioInterface:
         >>> ri.ptt(True)
 
         Un-key radio number 1.
-        >>> ri.ptt(False,num=1)
+        >>> ri.ptt(False, num=1)
         """
 
         if num is None:
@@ -183,10 +186,12 @@ class RadioInterface:
         self._command(f"ptt {num} {state}")
 
     def led(self, num, state):
-        """turn on or off LED's on the radio interface board
+        """
+        Turn on or off LED's on the radio interface board
 
         LED(num,state) changes the state of the LED given by num. If state is
-        true turn the LED on if state is False turn the LED off"""
+        true turn the LED on if state is False turn the LED off
+        """
 
         # determine LED state string
         if state:
@@ -201,12 +206,14 @@ class RadioInterface:
         self._command(f"LED {num} {ststr}")
 
     def devtype(self):
-        """get the devicetype string from the radio interface
+        """
+        Get the devicetype string from the radio interface
 
-        dt = DEVTYPE() where dt is the devicetype string"""
+        dt = DEVTYPE() where dt is the devicetype string
+        """
 
         # flush input from buffer
-        r=self.textin.readlines()
+        r = self.textin.readlines()
         if self.debug:
             print(f"flush: {r}")
         # send devtype command
@@ -244,8 +251,10 @@ class RadioInterface:
         return ver
 
     def pttState(self):
-        """returns the pttState for a radioInterface object. This is called
-        automatically when pttState is accessed"""
+        """
+        Returns the pttState for a radioInterface object. This is called
+        automatically when pttState is accessed.
+        """
 
         # flush input from buffer
 
@@ -285,8 +294,10 @@ class RadioInterface:
         return value
 
     def waitState(self):
-        """returns the WaitState for a radioInterface object. this is called
-        automatically when WaitState is accessed"""
+        """
+        Returns the WaitState for a radioInterface object. This is called
+        automatically when WaitState is accessed.
+        """
 
         self._command("ptt state")
         # get response line
@@ -307,13 +318,13 @@ class RadioInterface:
 
         PTT_DELAY(dly) set the radio to be keyed in dly seconds.
 
-        PTT_DELAY(dly,use_signal=True) set the radio to be keyed dly seconds
+        PTT_DELAY(dly, use_signal=True) set the radio to be keyed dly seconds
         after the start signal is detected.
 
-        PTT_DELAY(dly,num=n,__) same as above but used key radio number n
+        PTT_DELAY(dly, num=n, __) same as above but used key radio number n
         instead of the default radio
 
-        delay=PTT_DELAY(dly,__) same as above but return the actual delay set on
+        delay = PTT_DELAY(dly, __) same as above but return the actual delay set on
         the microcontroller. This is different because of rounding and limits on
         the possible delay
         """
@@ -354,11 +365,12 @@ class RadioInterface:
             raise RuntimeError("Unknown Error")
 
     def temp(self):
-        """read value from temperature sensors
+        """
+        Read value from temperature sensors
 
-        [ext,int]=temp() - returns the temperature measured by the thermistor
+        [ext, int] = temp() - Returns the temperature measured by the thermistor
         external to the radiointerface or the temperature sensor built into the
-        MSP430
+        MSP430.
         """
 
         # send temp command

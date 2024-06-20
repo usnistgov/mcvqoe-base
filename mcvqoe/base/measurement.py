@@ -18,6 +18,12 @@ from .naming import get_meas_basename
 from .write_log import fill_log, pre as log_pre, post as log_post
 
 class Measure:
+    """
+    Base class for all of our standard testing repositories. Not all functions
+    found here are used for all of our tests, although many are overridden
+    for their own purposes. Provides a good baseline for making another test
+    and integrating it into the GUI.
+    """
 
     no_log = ()
 
@@ -67,20 +73,20 @@ class Measure:
         if pb_missing:
             raise ValueError(f"self.audio_interface missing playback channels for : {pb_missing}")
 
+    # dummy function, override if needed
     def audio_clip_check(self):
-        # dummy function, override if needed
+
         pass
 
+    # dummy function, override if needed
     def log_extra(self):
-        """
-        A place to add test specific fields to the log
-        """
-        # dummy function, override if needed
+        """A place to add test specific fields to the log"""
 
         # Add blocksize and buffersize
         self.blocksize = self.audio_interface.blocksize
         self.buffersize = self.audio_interface.buffersize
 
+    # dummy function, override if needed
     def param_check(self):
         """
         Check that parameters are correct.
@@ -90,14 +96,13 @@ class Measure:
         ValueError
             If there is an incorrect parameter.
         """
-        # dummy function, override if needed
+
         pass
 
+    # dummy function, override if needed
     def test_setup(self):
-        """
-        Extra things that need to be setup for a specific test
-        """
-        # dummy function, override if needed
+        """Extra things that need to be setup for a specific test"""
+        
         pass
 
     def run(self, **kwargs):
@@ -111,8 +116,10 @@ class Measure:
             raise ValueError(f'Unknown test type "{self.test}"')
 
     def run_1loc(self):
-        """
-        Run a generic test.
+        """Run a generic test.
+        
+        This function is overridden by Access and TVO.
+        
         """
         
         # -----------------[Try statement for ending post notes]---------------

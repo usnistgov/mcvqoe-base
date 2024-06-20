@@ -17,7 +17,6 @@ from datetime import datetime, timedelta
 from mcvqoe.base.terminal_user import terminal_progress_update
 from mcvqoe.delay import ITS_delay_est
 from mcvqoe.timing.timecode import time_decode 
-from mcvqoe.delay.sliding_delay import sliding_delay_estimates
 from mcvqoe.utilities.reprocess import get_module, reprocess_file
 
 
@@ -80,11 +79,11 @@ def twoloc_process(tx_name, extra_play=0,
                         align_mode='fixed', 
                         **kwargs       #get kwargs to accept arbitrary arguments
                    ):
-    '''
+    """
     Process rx and tx files for a two location test.
     
     This writes a .csv file to ~home\documents\MCV-QoE\<test type>\<test>Reprocess
-    and wave files to ~home\documents\MCV-QoE\<test type>\<test>Reprocess\wav
+    and .wav files to ~home\documents\MCV-QoE\<test type>\<test>Reprocess\wav
     for a test. 
 
     Parameters
@@ -108,10 +107,16 @@ def twoloc_process(tx_name, extra_play=0,
     progress_update : function, default=terminal_user
         Function to call with updates on processing progress. 
         
+    Returns
+    -------
+    csv_out_name : string
+        The path to the reprocessed data csv file
+        
     See Also
     --------
         mcvqoe.mouth2ear : mouth to ear code, can produce 2 location data.
-    '''
+        mcvqoe.intelligibility : Gathers two location code to be reprocessed.
+    """
 
     #This software was developed by employees of the National Institute of
     #Standards and Technology (NIST), an agency of the Federal Government.
@@ -190,7 +195,7 @@ def twoloc_process(tx_name, extra_play=0,
     
     if tx_tt== 'Intelligibility':
         if align_mode != 'fixed':
-            progress_update('warning', 0, 0, msg=f"Only align_mode='fixed' gives reliable intelligibility scores." )
+            progress_update('warning', 0, 0, msg="Only align_mode='fixed' gives reliable intelligibility scores." )
     # Should be in same test folder as all other data
     # --------------------------[Locate input data]--------------------------
     

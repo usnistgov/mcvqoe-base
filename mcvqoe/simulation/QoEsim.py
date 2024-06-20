@@ -94,8 +94,7 @@ class QoEsim:
         method is called before play_record is called, then the time given to
         'ptt_delay' is added to access_delay to get the time when access is
         granted. Otherwise access is granted 'access_delay' seconds after the
-        clip starts.Can be set to a callable object to return a different value
-        each time. Can be set to a callable object to return a different value
+        clip starts. Can be set to a callable object to return a different value
         each time.
     device_delay : float, default=0
         Delay of simulated audio interface. This is added to m2e_latency and is
@@ -127,14 +126,21 @@ class QoEsim:
     Examples
     --------
     Play 48 kHz audio stored in tx_voice and record in a file named 'test.wav'.
+    note: "F1_harvard_phrases.wav" is found in the mouth2ear 'audio_clips' folder.
 
     >>> import mcvqoe.simulation.QoEsim
+    >>> import mcvqoe.base.misc
+    >>> rate, tx_voice = mcvqoe.base.audio_read("F1_harvard_phrases.wav")
     >>> sim_obj = mcvqoe.simulation.QoEsim(fs=int(48e3))
     >>> sim_obj.play_record(tx_voice, 'test.wav')
 
     Now do the same but also output the start signal on channel 1 and record the
     PTT signal on channel 1.
 
+    >>> import mcvqoe.simulation.QoEsim
+    >>> import mcvqoe.base.misc
+    >>> rate, tx_voice = mcvqoe.base.audio_read("F1_harvard_phrases.wav")
+    >>> sim_obj = mcvqoe.simulation.QoEsim(fs=int(48e3))
     >>> sim_obj.playback_chans = {'tx_voice':0, 'start_signal':1}
     >>> sim_obj.rec_chans = {'rx_voice':0, 'PTT_signal':1}
     >>> sim_obj.play_record(tx_voice, 'test.wav')
@@ -244,6 +250,7 @@ class QoEsim:
         --------
         Key a fake radio.
 
+        >>> import mcvqoe.simulation.QoEsim
         >>> sim_obj = mcvqoe.simulation.QoEsim()
         >>> sim_obj.ptt(True)  # key radio
         >>> sim_obj.ptt(False) # de-key radio
@@ -278,6 +285,7 @@ class QoEsim:
         --------
         Turn on some fake LEDs.
 
+        >>> import mcvqoe.simulation.QoEsim
         >>> sim_obj = mcvqoe.simulation.QoEsim()
         >>> sim_obj.led(1, True)
         >>> sim_obj.led(2, True)
@@ -315,6 +323,7 @@ class QoEsim:
         --------
         Query a fake 'RadioInterface'.
 
+        >>> import mcvqoe.simulation.QoEsim
         >>> sim_obj = mcvqoe.simulation.QoEsim()
         >>> print(sim_obj.devtype())
         """
@@ -341,7 +350,8 @@ class QoEsim:
         Examples
         --------
         Query a fake 'RadioInterface'.
-
+        
+        >>> import mcvqoe.simulation.QoEsim
         >>> sim_obj = mcvqoe.simulation.QoEsim()
         >>> print(sim_obj.get_id())
         """
@@ -368,6 +378,7 @@ class QoEsim:
         --------
         Query a fake 'RadioInterface'.
 
+        >>> import mcvqoe.simulation.QoEsim
         >>> sim_obj = mcvqoe.simulation.QoEsim()
         >>> print(sim_obj.get_version())
         """
@@ -393,6 +404,7 @@ class QoEsim:
         --------
         Query a fake 'RadioInterface'.
 
+        >>> import mcvqoe.simulation.QoEsim
         >>> sim_obj = mcvqoe.simulation.QoEsim()
         >>> print(sim_obj.pttState())
         >>> sim_obj.ptt(True)
@@ -421,6 +433,7 @@ class QoEsim:
         --------
         Query a fake 'RadioInterface'.
 
+        >>> import mcvqoe.simulation.QoEsim
         >>> sim_obj = mcvqoe.simulation.QoEsim()
         >>> print(sim_obj.waitState())
         """
@@ -459,6 +472,7 @@ class QoEsim:
         clip. 'tx_voice' has the 48k Hz voice vector. The result is stored in
         'test.wav'
 
+        >>> import mcvqoe.simulation.QoEsim
         >>> sim_obj = mcvqoe.simulation.QoEsim(fs=int(48e3))
         >>> sim_obj.playback_chans = {'tx_voice':0, 'start_signal':1}
         >>> sim_obj.rec_chans = {'rx_voice':0, 'PTT_signal':1}
@@ -497,9 +511,11 @@ class QoEsim:
         --------
         Read some fake temperatures.
 
+        >>> import mcvqoe.simulation.QoEsim
         >>> sim_obj = mcvqoe.simulation.QoEsim()
         >>> print(sim_obj.temp())
         """
+        
         # TODO : generate better fake values??
         return (38, 1500)
 
@@ -541,6 +557,7 @@ class QoEsim:
         --------
         Query a fake 'AudioPlayer'.
 
+        >>> import mcvqoe.simulation.QoEsim
         >>> sim_obj = mcvqoe.simulation.QoEsim()
         >>> print(sim_obj.find_device())
         """
@@ -571,8 +588,9 @@ class QoEsim:
 
         List channel technologies.
 
-        >>>QoEsim.get_channel_techs()
-        ("clean")
+        >>> import mcvqoe.simulation.QoEsim as QoEsim
+        >>> QoEsim.get_channel_techs()
+        ('amr-nb', 'amr-wb', 'analog', 'clean', 'p25')
         """
         
         chan_types = []
@@ -608,6 +626,7 @@ class QoEsim:
         --------
         Get rates for a clean channel
 
+        >>> import mcvqoe.simulation.QoEsim as QoEsim
         >>> QoEsim.get_channel_techs('clean')
         (None, [])
         """
@@ -638,6 +657,7 @@ class QoEsim:
         --------
         Get version for a clean channel
 
+        >>> import mcvqoe.simulation.QoEsim as QoEsim
         >>> QoEsim.get_channel_version('clean')
         <mcvqoe.base.version>
         """
@@ -687,6 +707,7 @@ class QoEsim:
         --------
         Get version for a clean channel
 
+        >>> import mcvqoe.simulation.QoEsim as QoEsim
         >>> QoEsim.get_channel_type('clean')
         'audio'
         """
@@ -703,9 +724,7 @@ class QoEsim:
     # =====================[get channel module]=====================
     @staticmethod
     def _get_chan_mod(tech):
-        """
-        Get module for channel plugin.
-        """
+        """Get module for channel plugin."""
 
         chan_types = []
         # locate any channel plugins installed
@@ -736,9 +755,7 @@ class QoEsim:
 
     # =========================[get impairment plugins]=========================
     def _get_impairment_module(name):
-        """
-        Get matching impairment module.
-        """
+        """Get matching impairment module."""
 
         # locate any impairment plugins installed
         impairments = QoEsim._get_impairments()
@@ -976,16 +993,21 @@ class QoEsim:
 
         Examples
         --------
-        Play 48 kHz audio stored in tx_voice and record in a file named
-        'test.wav'.
+        Play 48 kHz audio stored in tx_voice and record in a file named 'test.wav'.
+        note: "F1_harvard_phrases.wav" is found in the mouth2ear 'audio_clips' folder.
 
         >>> import mcvqoe.simulation.QoEsim
+        >>> import mcvqoe.base.misc
+        >>> rate, tx_voice = mcvqoe.base.audio_read("F1_harvard_phrases.wav")
         >>> sim_obj = mcvqoe.simulation.QoEsim(fs=int(48e3))
         >>> sim_obj.play_record(tx_voice, 'test.wav')
 
         Now do the same but also output the start signal on channel 1 and record
         the PTT signal on channel 1.
 
+        >>> import mcvqoe.simulation.QoEsim
+        >>> import mcvqoe.base.misc
+        >>> rate, tx_voice = mcvqoe.base.audio_read("F1_harvard_phrases.wav")
         >>> sim_obj.playback_chans = {'tx_voice':0, 'start_signal':1}
         >>> sim_obj.rec_chans = {'rx_voice':0, 'PTT_signal':1}
         >>> sim_obj.play_record(tx_voice, 'test.wav')
@@ -1170,9 +1192,7 @@ class QoEsim:
         return tuple(self.rec_chans.keys())
 
 class ImpairmentParam:
-    """
-    Class for defining parameters to impairments.
-    """
+    """Class for defining parameters to impairments."""
     
     def __init__(self, default, value_type, choice_type, **kwargs):
         self.default = default

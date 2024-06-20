@@ -4,14 +4,16 @@ import math
 import mcvqoe.base
 import os
 import re
+
 import numpy as np
 import pandas as pd
 
 from mcvqoe.base.terminal_user import terminal_progress_update
 
+
 class Diagnose():
     """
-   Diagnose Class to perform diagnostic evaluation of received
+    Diagnose Class to perform diagnostic evaluation of received
     audio data wav files and confirm data integrity.
      
     Use a-weight, FSF, and clipping checks to inform
@@ -43,8 +45,8 @@ class Diagnose():
     rx_dat : list
         names of rx recordings
 
-   
     """
+    
     def __init__(self, 
                  wav_dir = '',
                  progress_update=terminal_progress_update,
@@ -67,6 +69,7 @@ class Diagnose():
         order into a list of arrays.
     
         """
+        
         # Read in a directory of test trial wav files.
         # Get all the Rx wav files 
         dir_files = os.listdir(self.wav_dir)
@@ -220,9 +223,11 @@ class Diagnose():
         Returns
         ------- 
         peak_dbfs : list
-            peak amplitude of each trial, dB relative to full 
-            scale 
+            Peak amplitude of each trial, dB relative to full 
+            scale
+            
         """
+        
         # Create empty list for peak amplitude
         peak_dbfs = []
         for n in range(0,self.trials):
@@ -250,6 +255,7 @@ class Diagnose():
             Trials that clipped 
     
         """
+        
         # Set up warning threshold
         vol_high = -1
         # Create empty list for setting flags
@@ -282,7 +288,9 @@ class Diagnose():
         fsf_flag : list
             Trials that have low FSF scores or otherwise deviate 
             from the patterns of the dataset
+            
         """
+        
         if np.isinf(fsf_all).all():
             return 0
         # Create empty list for FSF flag    
@@ -321,6 +329,7 @@ class Diagnose():
             or otherwise deviate from the patterns of the dataset 
     
         """
+        
         # Create empty list for a-weight flag     
         aw_flag = []
         # Calculate mean a-weight, standard deviation.
@@ -349,7 +358,6 @@ class Diagnose():
     def gather_diagnostics(self, a_weight, fsf_all, peak_dbfs,
                            clip_flag, fsf_flag, aw_flag,
                            filename='diagnostics.csv'):
-        
         """
         Create a dataframe of all diagnostic data. A-weighted power,
         FSF scores, max clip amplitude, and flags. Returns calculations
@@ -358,11 +366,11 @@ class Diagnose():
         Parameters
         ----------
         A_Weight : list    
-            A-Weight across all RX trials 
+            A-Weight across all Rx trials 
         FSF_all : list
-            FSF scores across all RX trials
+            FSF scores across all Rx trials
         peak_dbfs : list     
-            Peak amplitude across all RX trials   
+            Peak amplitude across all Rx trials   
         clip_flag : list
             Trials that clipped    
         fsf_flag : list
@@ -375,8 +383,10 @@ class Diagnose():
         Returns
         -------
         diagnostics_csv : csv 
-            CSV containing all the dat for diagnostics measurements
+            CSV containing all the data for diagnostics measurements
+            
         """
+        
         outname = os.path.join(self.wav_dir, filename)
         self.progress_update(
                prog_type="status",
@@ -401,6 +411,7 @@ class Diagnose():
         return outname
     
     def run_diagnostics(self, filename='diagnostics.csv'):
+        
         # Run through diagnostics measurements 
         a_weight = self.aw_calc()   
         aw_flag = self.aw_flag(a_weight)
@@ -427,16 +438,8 @@ def main():
     Use a-weight, FSF, and clipping checks to inform
     user of potential problems in collected data. Flags
     trials that may require further investigation.
-
-    Parameters
-    ----------
-    Wav_Dir : string
-        directory of WAV files
-
-    Returns
-    -------
-
     """
+    
     # Input parsing
     parser = argparse.ArgumentParser()
     parser.add_argument(

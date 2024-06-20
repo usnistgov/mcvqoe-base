@@ -1,16 +1,19 @@
 import importlib
+import mcvqoe.base.version
 import os
 import platform
 import traceback
 import warnings
 
-import mcvqoe.base.version
 import numpy as np
 
 
 def fill_log(test_obj):
     """
-    Take in QoE measurement class and fill in standard log entries
+    Take in QoE measurement class and fill in standard log entries.
+    
+    Used for the tests.log files found in the measurement folder, and
+    the test specific folder.
 
     ...
 
@@ -18,8 +21,6 @@ def fill_log(test_obj):
     ----------
     test_obj : QoE measurement class
         Class to generate test info for
-    git_path : string, default=None
-        path to git executable. Will look in the path if None
     """
 
     # initialize info
@@ -142,7 +143,8 @@ def format_text_block(text):
 
 def pre(info={}, outdir="", test_folder=""):
     """
-    Take in a QoE measurement class info dictionary and write pre-test to tests.log.
+    Take in a QoE measurement class info dictionary and write pre-test to tests.log
+    found in the measurement folder, and the test's specific folder.
 
     ...
 
@@ -194,7 +196,8 @@ def pre(info={}, outdir="", test_folder=""):
 
 def post(info={}, outdir="", test_folder=""):
     """
-    Take in a QoE measurement class info dictionary to write post-test to tests.log.
+    Take in a QoE measurement class info dictionary to write post-test to tests.log
+    found in the measurement folder, and the test's specific folder.
 
     ...
 
@@ -204,6 +207,8 @@ def post(info={}, outdir="", test_folder=""):
         The <measurement>.info dictionary.
     outdir : str
         The directory to write to.
+    test_folder : str
+        Folder for this particular test's log file.
 
     """
 

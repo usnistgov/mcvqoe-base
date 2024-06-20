@@ -1,12 +1,14 @@
 from mcvqoe.base import audio_float
 
 import numpy as np
+
 import datetime
+
 
 soft_time_fmt = "TM%j-%Y_%H-%M-%S.%f"
 
 
-def soft_time_decode(audio,fs):
+def soft_time_decode(audio, fs):
     if len(audio.shape) != 1:
         raise ValueError("Input must be a numpy vector")
     
@@ -33,7 +35,7 @@ def soft_time_decode(audio,fs):
 
     for n,idx in enumerate(tc_idx):
         #audio index of string
-        idx_str=idx
+        idx_str = idx
         #initialize time str
         tc_str = ''
         #loop till end of string
@@ -41,7 +43,7 @@ def soft_time_decode(audio,fs):
             #get char from string
             tc_str += chr(audio[idx_str])
             #next index
-            idx_str +=1
+            idx_str += 1
         
         time = datetime.datetime.strptime(tc_str, soft_time_fmt)
         # append time and index to array

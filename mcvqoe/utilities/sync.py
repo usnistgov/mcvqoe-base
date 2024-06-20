@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import argparse
 import datetime
 import configparser
@@ -8,11 +6,13 @@ import os
 import re
 import shutil
 
+
 # prefix to show that this path needs sub folders copied
 recur_prefix = "*"
 
 # prefix to show not to backup sync folder
 noback_prefix = "-"
+
 
 def prog_str(prog_type, **kwargs):
 
@@ -23,7 +23,7 @@ def prog_str(prog_type, **kwargs):
     if len(split_type) > 1:
         minor_type = split_type[1]
     else:
-        #no minor type
+        # no minor type
         minor_type = None
 
     progress_str = ''
@@ -37,7 +37,7 @@ def prog_str(prog_type, **kwargs):
             progress_str = "Log files are identical, no lines copied\n"
         # add success message`
         progress_str += f'Log updated successfully to {kwargs["file"]}\n'
-    #common things
+    # common things
     elif minor_type == 'dir':
         if major_type == 'log':
             progress_str = f'Finding Log files in \'{kwargs["dir"]}\''
@@ -60,7 +60,7 @@ def prog_str(prog_type, **kwargs):
         progress_str = f'Skipping Directory \'{kwargs["dir"]}\''
     elif minor_type == 'srcdest':
         progress_str = f'Copying \'{kwargs["src"]}\' to \'{kwargs["dest"]}\''
-    #cull things
+    # cull things
     elif prog_type == 'cull-deldir':
         progress_str = f'Deleting old directory \'{kwargs["dir"]}\''
     elif prog_type == 'cull-delfile':
@@ -69,11 +69,11 @@ def prog_str(prog_type, **kwargs):
         progress_str = f'Unable to parse date in file \'{kwargs["file"]}\''
     elif prog_type == 'cull-badname' :
         progress_str = f'Unable to parse filename \'{kwargs["file"]}\''
-    #skipping things
+    # skipping things
     elif prog_type == 'skip-later' :
         progress_str = f'Skipping {kwargs["file"]} for later'
     elif prog_type == 'skip-start' :
-        #ignore indent here, this will be done at the end
+        # ignore indent here, this will be done at the end
         progress_str = f'Copying skipped {kwargs["ext"]} files'
     elif prog_type == 'supdate-old':
         progress_str = "Sync version old, updating"
@@ -93,6 +93,7 @@ def terminal_progress_update(
             total,
             current,
             **kwargs):
+    
     indents = {
         'main' : 0,
         'sub' : 1,
@@ -121,7 +122,7 @@ def terminal_progress_update(
     elif minor_type == 'start':
         print(indent + f'Found {total} files to copy')
     elif minor_type == 'update':
-        #only update terminal for subsub
+        # only update terminal for subsub
         if major_type == 'subsub' :
             if current % 100 ==0:
                 print(f'copying file {current} of {total}')
@@ -152,7 +153,7 @@ class cpyDelay:
         self.verbose = 0
         self.progress_update = terminal_progress_update
 
-        #get properties from kwargs
+        # get properties from kwargs
         for k, v in kwargs.items():
             if hasattr(self, k):
                 setattr(self, k, v)
@@ -207,15 +208,15 @@ class cpyDelay:
 
 class TestSyncer:
     def __init__(self, **kwargs):
-        #set default values
-        self.progress_update=terminal_progress_update
-        self.bd=False
-        self.cull=False
-        self.sunset=30
-        self.thorough=False
+        # set default values
+        self.progress_update = terminal_progress_update
+        self.bd = False
+        self.cull = False
+        self.sunset = 30
+        self.thorough = False
         self.copied_files = set()
 
-        #get properties from kwargs
+        # get properties from kwargs
         for k, v in kwargs.items():
             if hasattr(self, k):
                 setattr(self, k, v)
@@ -300,7 +301,7 @@ class TestSyncer:
                     # yes, copy everything
                     # we will work out which files in subfolders to copy later
 
-                    #get total number of dirs to check
+                    # get total number of dirs to check
                     cnum = len(sset)
                     for n, dir in enumerate(sset):
                         self.progress_update('sub-update', cnum, n, dir=sname)
@@ -405,8 +406,8 @@ class TestSyncer:
                                 # copy metadata
                                 shutil.copystat(sname, dname)
                 elif self.cull:
-                    #get number of files
-                    cnum=len(sset)
+                    # get number of files
+                    cnum = len(sset)
                     # find old files and delete them
                     for n, f in enumerate(sset):
                         self.progress_update('cull-update', cnum, n)
@@ -421,7 +422,7 @@ class TestSyncer:
 
                         if not m:
                             self.progress_update('cull-badname', cnum, n, file=os.path.join(src, f))
-                            #nothing more to do here
+                            # nothing more to do here
                             continue;
 
                         # grab date/time from filename
@@ -454,7 +455,7 @@ class TestSyncer:
 
 def export_sync(config_name, progress_update=terminal_progress_update, **kwargs):
 
-    #don't allow cull to be used here
+    # don't allow cull to be used here
     if 'cull' in kwargs and kwargs['cull']:
         raise TypeError('cull is not supported for export_sync')
 
@@ -470,10 +471,10 @@ def export_sync(config_name, progress_update=terminal_progress_update, **kwargs)
     # find configuration file location, all paths are relative to this
     config_fold = os.path.dirname(os.path.abspath(config_name))
 
-    #create a sync object
+    # create a sync object
     sync_obj = TestSyncer(progress_update=progress_update, **kwargs)
 
-    #get number of sections
+    # get number of sections
     snum = len(config.sections())
 
     for n, section in enumerate(config.sections()):
@@ -515,11 +516,11 @@ def export_sync(config_name, progress_update=terminal_progress_update, **kwargs)
     # do things that are saved till the end
     sync_obj.finish_tasks()
 
-    #return the set of copied files
+    # return the set of copied files
     return sync_obj.copied_files
 
 def import_sync(src, dest, progress_update=terminal_progress_update, **kwargs):
-    #create a sync object
+    # create a sync object
     sync_obj = TestSyncer(progress_update=progress_update, **kwargs)
     # print message
     progress_update('main-srcdest', 0, 0, src=src, dest=dest)
@@ -528,7 +529,7 @@ def import_sync(src, dest, progress_update=terminal_progress_update, **kwargs):
     # do things that are saved till the end
     sync_obj.finish_tasks()
 
-    #return the set of copied files
+    # return the set of copied files
     return sync_obj.copied_files
 
 # main function
@@ -539,6 +540,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Copy MCV data files between drive and computers"
     )
+    
     parser.add_argument(
         "- i",
         "--import",
@@ -607,7 +609,7 @@ def main():
     args = parser.parse_args()
 
     test_sync_arg_names = ('bd', 'thorough', 'cull', 'sunset')
-    #extract arguments for TestSyncer
+    # extract arguments for TestSyncer
     test_sync_args = {k:v for k,v in vars(args).items() if k in test_sync_arg_names}
 
     # check if import argument was given

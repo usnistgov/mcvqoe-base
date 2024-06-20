@@ -17,7 +17,7 @@ def ITS_delay_est(x_speech, y_speech, mode, fs=8000, dlyBounds=[np.NINF, np.inf]
 
     Written by Stephen Voran at the Institute for Telecommunication Sciences,
     325 Broadway, Boulder, Colorado, USA, svoran@its.bldrdoc.gov
-    May 10,2004
+    May 10, 2004
 
     Parameters
     ----------
@@ -25,16 +25,16 @@ def ITS_delay_est(x_speech, y_speech, mode, fs=8000, dlyBounds=[np.NINF, np.inf]
         Vector of speech samples. At least 148 ms of speech is required.
     y_speech : array
         Vector of speech samples. At least 148 ms of speech is required.
-    mode : {'f','v','u'}
+    mode : {'f', 'v', 'u'}
         Delay mode to use. Fixed delay ('f') assumes that the delay is fixed
         for all of y_speech. Variable delay ('v') assumes that the delay can
         change. Unknown delay ('u') checks if the coarse delay was well
         correlated, fixed delay is used, otherwise variable delay is used.
     fs : numeric, default=8000
         Sample rate for the audio vectors.
-    dlyBounds : array, default = [-Inf,Inf]
+    dlyBounds : array, default = [-Inf, Inf]
         The interval of acceptable delays in seconds.
-    min_corr : float, default = 0
+    min_corr : float, default=0
         Minimum correlation threshold. If the coarse delay correlation is lower
         than min_corr, the delay estimate is determined to be unsuccessful.
 
@@ -57,21 +57,22 @@ def ITS_delay_est(x_speech, y_speech, mode, fs=8000, dlyBounds=[np.NINF, np.inf]
     --------
     load in speech file for examples
 
-    >>> speechf=io.BytesIO(pkgutil.get_data('mcvqoe','audio_clips/test.wav'))
-    >>> (fs_speech,speech)=mcvqoe.base.audio_read(speechf)
+    >>> speechf = io.BytesIO(pkgutil.get_data('mcvqoe', 'audio_clips/test.wav'))
+    >>> (fs_speech, speech) = mcvqoe.base.audio_read(speechf)
 
     Simple fixed delay example.
 
-    >>> fixed_delay_speech=np.concatenate((np.zeros(shape=[17]),speech))
-    >>> mcvqoe.ITS_delay_est(speech,fixed_delay_speech,'f')
+    >>> fixed_delay_speech = np.concatenate((np.zeros(shape=[17]), speech))
+    >>> mcvqoe.ITS_delay_est(speech, fixed_delay_speech, 'f')
     (161635, 17)
 
     This means that the single delay estimate of 17 samples applies to samples
-    with indices [0,161635] in y_speech.
+    with indices [0, 161635] in y_speech.
 
-    >>> var_delay_speech=np.concatenate((speech[2:12000],np.zeros(shape=[417]),
+    >>> var_delay_speech=np.concatenate((speech[2:12000],
+                                         np.zeros(shape=[417]),
     ...                                  speech[12015:]))
-    >>> mcvqoe.ITS_delay_est(speech,var_delay_speech,'u')
+    >>> mcvqoe.ITS_delay_est(speech, var_delay_speech, 'u')
     ((12184, 162018), (-2, 400))
 
     This means that for samples 0 through 12184, the delay is estimated to be -2
@@ -81,15 +82,18 @@ def ITS_delay_est(x_speech, y_speech, mode, fs=8000, dlyBounds=[np.NINF, np.inf]
     If 'u' mode is used, a tuple of tuples is always returned, even if one delay
     is found.
 
-    >>> mcvqoe.ITS_delay_est(speech,fixed_delay_speech,'u')
-    ((161635,), (17,))
+    >>> mcvqoe.ITS_delay_est(speech, fixed_delay_speech, 'u')
+    ((161635, ), (17, ))
 
     Example with too small an input signal.
 
-    >>> ITS_delay_est(speech,speech[:1000],'f')
+    >>> ITS_delay_est(speech, speech[:1000], 'f')
     array([0, 0])
+    
     """
+    
     # ----------------------------Parse Arguments--------------------------------
+    
     x_speech = np.array(x_speech, dtype=np.float64)
     if len(x_speech) == 0:
         raise ValueError("x_speech can not have zero length")
@@ -112,6 +116,7 @@ def ITS_delay_est(x_speech, y_speech, mode, fs=8000, dlyBounds=[np.NINF, np.inf]
         raise ValueError(f"dlyBounds must be increasing. got {dlyBounds}")
 
     # ----------------------Resample Arguments to 8kHz--------------------------
+    
     if fs != 8000:
         xlen = len(x_speech)
         ylen = len(y_speech)
@@ -126,6 +131,7 @@ def ITS_delay_est(x_speech, y_speech, mode, fs=8000, dlyBounds=[np.NINF, np.inf]
         ret_type = "multiple-values"
 
     # --------------------------Level Normalization-----------------------------#
+    
     # Measure active speech level
     try:
         asl_x = active_speech_level(x_speech)
@@ -143,7 +149,9 @@ def ITS_delay_est(x_speech, y_speech, mode, fs=8000, dlyBounds=[np.NINF, np.inf]
     # Force active speech level to -26 dB r.e. overload
     x_speech = x_speech * 10 ** ((asl_x + 26) / -20)
     y_speech = y_speech * 10 ** ((asl_y + 26) / -20)
+    
     # ---------------------Coarse Average Delay Estimation----------------------#
+    
     tau_0, rho_0, fir_coeff_63 = coarse_avg_dly_est(x_speech, y_speech, dlyBounds)
     # Compensate for tau_0, comp_x_speech and comp_y_speech will have same length
     comp_x_speech, comp_y_speech = fxd_delay_comp(x_speech, y_speech, tau_0)
@@ -155,13 +163,18 @@ def ITS_delay_est(x_speech, y_speech, mode, fs=8000, dlyBounds=[np.NINF, np.inf]
         # Algorithm must terminate
         mode = "t"
     # ------------------------Check Correlation threshold-----------------------#
+    
     if rho_0 < min_corr:
         # rho_0 is too low, terminate
         mode = "t"
+        
     # ------------Do further mode determination as necessary/possible-----------#
+    
     if mode == "u" and rho_0 < 0.96:
         mode = "v"
+        
     # -----Fine delay estimation for the fixed and unknown delay cases----------#
+    
     if mode == "f" or mode == "u":
         # Find fine delay
         fxd_fine_delay = fxd_fine_dly_est(comp_x_speech, comp_y_speech)
@@ -172,28 +185,42 @@ def ITS_delay_est(x_speech, y_speech, mode, fs=8000, dlyBounds=[np.NINF, np.inf]
         if mode == "f":
             # nothing more to do, bail early
             return (int((len(y_speech) - 1) * (fs / 8000)), int(D_fxd * (fs / 8000)))
+        
     # -------Additional stages for the variable and unknown delay cases---------#
+    
     if mode == "v" or mode == "u":
+        
         # ---------------------Speech Activity Detection------------------------#
+        
         # Identify active speech samples (active_wf is same size as y_speech,
         # 1 indicates activity, 0 otherwise)
         active_wf = find_activity_wf(y_speech, fir_coeff_63)
         # Compensate the activity waveform for tau_0
         _, comp_active_wf = fxd_delay_comp(x_speech, active_wf, tau_0)
+        
         # --------------------------Delay Tracking------------------------------#
+        
         DCAVS = delay_tracking(comp_x_speech, comp_y_speech, comp_active_wf, 150, 40, 200)
+        
         # --------------------------Median Filtering----------------------------#
+        
         SDV = median_filter(DCAVS, 500, 40, 0.1, 0.8)
+        
         # ---------------------Combine Results with tau_0-----------------------#
+        
         SDV[:, 1] = SDV[:, 1] + tau_0  # Add in tau_0 to delay estimates
         if 0 < tau_0:  # If tau_0 is a positive quantity
             # then adjust locations of delay segments as well
             SDV[:, 0] = SDV[:, 0] + tau_0
         # Adjust final location to exactly match end of y_speech
         SDV[-1, 0] = len(y_speech) - 1
+        
         # ----------------------------Delay Refinement--------------------------#
+        
         SDV = delay_refine(SDV, x_speech, y_speech, active_wf, 72, 0.7)
+        
         # ---------------Remove Redundant Entries in SDV matrix-----------------#
+        
         # If delay and validity do not change from segment n to n+1, then
         # segment n is redundant
         keepers = np.append(
@@ -203,13 +230,18 @@ def ITS_delay_est(x_speech, y_speech, mode, fs=8000, dlyBounds=[np.NINF, np.inf]
         SDV = SDV[keepers, :]
         # Adjust final location to exactly end y_speech
         SDV[-1, 0] = len(y_speech) - 1
+        
         # -----------------Round Delay Estimates to Nearest Integer-------------
+        
         SDV[:, 1] = np.round(SDV[:, 1])
+        
         # -----------------------Short Segment Correction------------------------
+        
         if np.size(SDV, 0) > 1:
             SDV = short_seg_cor(SDV, x_speech, y_speech, 160, 280, 80)
 
     # --------------------------Apply LSE if Necessary--------------------------
+    
     if mode == "u":
         [lse_f, lse_v] = LSE(x_speech, y_speech, D_fxd, SDV, 16)
 
@@ -217,7 +249,9 @@ def ITS_delay_est(x_speech, y_speech, mode, fs=8000, dlyBounds=[np.NINF, np.inf]
             mode = "f"
         else:
             mode = "v"
+            
     # ---Select Output, Extrapolate Variable Delay Estimate if Necessary--------
+    
     if mode == "v":
         Delay_est = extend_val_res(SDV)  # Extrapolate variable delay estimate
     elif mode == "f":
@@ -238,7 +272,7 @@ def ITS_delay_est(x_speech, y_speech, mode, fs=8000, dlyBounds=[np.NINF, np.inf]
 
 
 def active_speech_level(x, fs=8000):
-    # Usage: asl=active_speech_level(x)
+    # Usage: asl = active_speech_level(x)
     # This function measures the active speech levels in the speech vector x.
     # x is a vector of speech samples
     # fs to is the sample rate of x
@@ -268,6 +302,7 @@ def active_speech_level(x, fs=8000):
     # Test for both activity and non-zeroness to prevent log(0)
     x = x[np.logical_and(0 < x, active)]
     asl = 20 * np.mean(np.log10(x)) - 81
+    
     return asl
 
 
@@ -294,6 +329,7 @@ def find_fir_coeffs(order, cutoff):
     b = h * sinxox
     # Normalize coefficients for unity gain in passband
     b = b / sum(b)
+    
     return b
 
 
@@ -346,6 +382,7 @@ def coarse_avg_dly_est(x, y, b):
     tau_0 = valid_shifts[index]
     # Normalize to get cross correlation value
     rho_0 = rho / ((corrlen - 1) * np.std(ex, ddof=1) * np.std(ey, ddof=1))
+    
     return tau_0, rho_0, fir_coeff
 
 
@@ -362,12 +399,13 @@ def fxd_delay_comp(source, distorted, delay):
     # Extract proper portions
     source = source[sstart : sstart + samples]
     distorted = distorted[dstart : dstart + samples]
+    
     return source, distorted
 
 
 # ==========================================================================
 def fxd_fine_dly_est(x, y):
-    # Usage: D=fxd_fine_dly_est(x,y)
+    # Usage: D = fxd_fine_dly_est(x, y)
     # This function performs an FFT-based cross correlation on the rectified
     # speech signals and then processes the results to find a delay estimate
     # x and y are  vectors of speech samples
@@ -401,12 +439,13 @@ def fxd_fine_dly_est(x, y):
         sxc = sxc[int(headlen + (flen / 2)) : int(headlen + (flen / 2) + 1 + 2 * ran)]
         index = np.argmax(sxc)
         D = index - ran  # Calculate delay estimate
+        
     return D
 
 
 # ==========================================================================
 def fft_xc(x, y, min_d, max_d):
-    # Usage: un_corr,denom=fft_xc(x,y,min_d,max_d)
+    # Usage: un_corr, denom = fft_xc(x, y, min_d, max_d)
     # This function does an fft-based cross correlation on the waveforms in the
     # vectors x and y. These two vectors need not have the same length,
     # but the resulting delay estimated is defined relative to zero time offset
@@ -438,17 +477,18 @@ def fft_xc(x, y, min_d, max_d):
     xc = xc[::-1]  # reverse the vector
     # Test to see if requested values of delay are available
     if corrlen + min_d + 1 < 1 or 2 * corrlen < corrlen + max_d + 1:
-        error("Not enough input samples to calculate requested delay values.")
+        warnings.warn("Not enough input samples to calculate requested delay values.")
     # Extract requested values of delay
     un_corr = xc[corrlen + min_d : corrlen + max_d + 1]
     # Calculate the denominator
     denom = (corrlen - 1) * np.std(x, ddof=1) * np.std(y, ddof=1)
+    
     return un_corr, denom
 
 
 # ==========================================================================
 def find_activity_wf(x, fir_coeff):
-    # Usage: active_x=find_activity_wf(x,fir_coeff)
+    # Usage: active_x = find_activity_wf(x, fir_coeff)
     # This function generates an output vector (active_x) that shows the
     # speech activity waveform of the input vector (x).
     # Speech activity is defined via a smoothed speech envelope with nominal
@@ -469,12 +509,13 @@ def find_activity_wf(x, fir_coeff):
     for j in range(0, len(trans)):  # Loop over all transitions
         # Extend activity in each direction
         active_x[max(trans[j] - tau, 0) : min(trans[j] + tau, nx - 1) + 1] = 1
+        
     return active_x
 
 
 # ==========================================================================
 def delay_tracking(x, y, active_wf, winlen, winstep, ran):
-    # Usage: DCAVS=delay_tracking(x,y,active_wf,winlen,winstep,range)
+    # Usage: DCAVS = delay_tracking(x, y, active_wf, winlen, winstep, range)
     # This function does delay tracking (delay in speech signal y relative to x)
     # winlen is the length of window used for the delay estimation alg (in ms)
     # winstep is the step size between windows (in ms)
@@ -546,6 +587,7 @@ def delay_tracking(x, y, active_wf, winlen, winstep, ran):
             DCAVS[i, 1] = maxrho / denom
             # Mark that window as having a valid delay estimate
             DCAVS[i, 3] = True
+            
     return DCAVS
 
 
@@ -553,7 +595,7 @@ def delay_tracking(x, y, active_wf, winlen, winstep, ran):
 
 
 def non_fft_xc(x, y, min_d, max_d):
-    # Usage: xcs,denom,ystart,ystop=non_fft_xc(x,y,min_d,max_d)
+    # Usage: xcs, denom, ystart, ystop = non_fft_xc(x, y, min_d, max_d)
     # This function enables delay estimation by calculating the cross
     # correlation between two vectors of speech samples x and y at the
     # specified shifts. x and y need not have the same length. Zero delay
@@ -611,12 +653,13 @@ def non_fft_xc(x, y, min_d, max_d):
             xcs[i] = 0
     # Find the fixed portion of the denominator
     denom = np.sqrt(np.dot(temp_y, temp_y))
+    
     return xcs, denom
 
 
 # =========================================================================='''
 def median_filter(DCAVS, twinlen, winstep, activity_th, cor_th):
-    # Usage: SDV=median_filter(DCAVS,twinlen,winstep,activity_th,cor_th)
+    # Usage: SDV = median_filter(DCAVS, twinlen, winstep, activity_th, cor_th)
     # This function does the median filtering on the results in the DCAVS
     # matrix. The DCAVS matrix is defined in the delay_tracking function.
     #
@@ -693,6 +736,7 @@ def median_filter(DCAVS, twinlen, winstep, activity_th, cor_th):
     # fs=8000 samples/sec domain
     SDV[:, 1] = SDV[:, 1] * 16  # Convert delay estimates
     SDV[:, 0] = (SDV[:, 0]) * 16 + 8  # Convert sample values
+    
     return SDV
 
 
@@ -700,7 +744,7 @@ def median_filter(DCAVS, twinlen, winstep, activity_th, cor_th):
 
 
 def delay_refine(SDVin, x_speech, y_speech, active_wf, ran, cor_th):
-    # Usage: SDVout=delay_refine(SDVin,x_speech,y_speech,active_wf,range,cor_th)
+    # Usage: SDVout = delay_refine(SDVin, x_speech, y_speech, active_wf, range, cor_th)
     # This function refines the input delay matrix SDVin, to generate SDVout.
     # SDVin and SDVout are in the fs=8000 domain and have one row per segment
     # of constant delay.
@@ -817,6 +861,7 @@ def delay_refine(SDVin, x_speech, y_speech, active_wf, ran, cor_th):
                     if cor_th <= peak / denom:
                         # Apply the refinement
                         SDVout[i, 1] = delay + (ran - loc)
+                        
     return SDVout
 
 
@@ -827,7 +872,7 @@ def non_fft_xc_all(x, y):
     # possible shifts that use all of y.
     # The unnormalized correlation values are returned in un_cor, and the
     # denominator is returned in denom.
-    # It is required that length(x)>=length(y).
+    # It is required that length(x) >= length(y).
     # Find lengths
     nx = len(x)
     ny = len(y)
@@ -850,12 +895,13 @@ def non_fft_xc_all(x, y):
             un_corr[i] = 0
     # Find fixed portion of denominator
     denom = np.sqrt(np.dot(y, y))
+    
     return un_corr, denom
 
 
 # ==========================================================================
 def short_seg_cor(SDVin, x_speech, y_speech, len_t, len_b, len_s):
-    # Usage: SDVout=short_seg_cor(SDVin,x_speech,y_speech,len_t,len_b,len_s)
+    # Usage: SDVout = short_seg_cor(SDVin, x_speech, y_speech, len_t, len_b, len_s)
     # This function tests all pulses (also called blips), steps and tails in
     # an estimated delay history and removes them when appropriate
     #
@@ -1010,6 +1056,7 @@ def short_seg_cor(SDVin, x_speech, y_speech, len_t, len_b, len_s):
     )
     # Retain only those segments
     SDVout = SDVout[keepers, :]
+    
     return SDVout
 
 
@@ -1104,12 +1151,13 @@ def find_smallest_seg(SDVLS):
                 # Otherwise current segment is a step
                 else:
                     seg_type = "SP"
+                    
     return ptr, seg_type
 
 
 # ==========================================================================
 def single_corr(x_speech, y_speech, start, stop, delay):
-    # Usage: rho=single_corr(x_speech,y_speech,start,stop,delay)
+    # Usage: rho = single_corr(x_speech, y_speech, start, stop, delay)
     # This function calculates a single correlation value between
     # a segment of x_speech and y_speech. The goal is to use the
     # samples of y_speech from "start" to "stop" inclusive and the
@@ -1143,12 +1191,13 @@ def single_corr(x_speech, y_speech, start, stop, delay):
     rho, denom = non_fft_xc_all(x, y)
     # Normalize to find correlation value
     rho = rho / denom
+    
     return rho
 
 
 # ==========================================================================
 def extend_val_res(SDVin):
-    # Usage: SDVout=extend_val_res(SDVin)
+    # Usage: SDVout = extend_val_res(SDVin)
     # This function extrapolates valid results to cover areas where there are
     # none. SDVin and SDVout are Delay history matrices in the fs=8000 domain:
     # Column 0, Sample number of last sample of constant delay segment
@@ -1189,12 +1238,13 @@ def extend_val_res(SDVin):
         SDVout = np.column_stack((SDVout[keepers, 0], SDVout[keepers, 1]))
     else:
         SDVout = SDVout[0, [0, 1]]
+        
     return SDVout
 
 
 # ==========================================================================
 def LSE(s, d, Df, Dv, maxsp):
-    # Usage: lse_f,lse_v=LSE(s,d,Df,Dv,maxsp)
+    # Usage: lse_f, lse_v = LSE(s, d, Df, Dv, maxsp)
     # This function calculates log-spectra error for fixed and variable delay
     # estimates.
     #
@@ -1326,6 +1376,7 @@ def LSE(s, d, Df, Dv, maxsp):
     else:
         lse_f = 0
         lse_v = 0
+        
     return lse_f, lse_v
 
 
@@ -1342,4 +1393,5 @@ def my_round(x):
             x[i] = round_val(x[i])
     else:
         x = round_val(x)
+
     return x

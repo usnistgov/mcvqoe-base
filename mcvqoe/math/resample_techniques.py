@@ -42,6 +42,7 @@ def bootstrap_ci(x, p=0.95, R=1e4, stat=np.mean, method="percentile"):
     American Statistician, 69:4, 371-386, DOI: 10.1080/00031305.2015.1089789
 
     """
+    
     # Force R to be an int
     if type(R) is not int:
         R = int(R)
@@ -97,8 +98,8 @@ def bootstrap_ci(x, p=0.95, R=1e4, stat=np.mean, method="percentile"):
 
 
 def approx_permutation_test(
-    x, y, accept_threshold=0.05, R=1e4, stat=np.mean, tail="two"
-):
+        x, y, accept_threshold=0.05, R=1e4,
+        stat=np.mean, tail="two"):
     """
     Perform an approximate permutation test to test if two sets of data are
     from equivalent distributions.
@@ -135,7 +136,6 @@ def approx_permutation_test(
         absolute value of the observed statistic.
 
 
-
     Return
     ------
     Boolean
@@ -152,16 +152,16 @@ def approx_permutation_test(
 
     >>> x = np.ones(120)
     >>> y = np.zeros(30)
-    >>> mcvqoe.math.approx_permutation_test(x,y)
+    >>> mcvqoe.math.approx_permutation_test(x, y)
     True
 
     Compare two similar data sets, returns False as the null hypothesis is not
     rejected.
 
     >>> rng = np.random.default_rng()
-    >>> x = rng.normal(0,1,100)
-    >>> y = rng.normal(0.1,1,100)
-    >>> mcvqoe.math.approx_permutation_test(x,y)
+    >>> x = rng.normal(0, 1, 100)
+    >>> y = rng.normal(0.1, 1, 100)
+    >>> mcvqoe.math.approx_permutation_test(x, y)
     False
     """
 
@@ -248,6 +248,7 @@ def standard_error(x):
         Standard error of x
 
     """
+    
     se = np.std(x) / np.sqrt(len(x))
     return se
 
@@ -256,7 +257,9 @@ def compare_uncs(x):
     """
     Calculate standard error and bootstrap based confidence intervals
 
-    A nice sanity check that in well behaved circumstances, standard error is equivalent to bootstrap confidence interval results. Computes 95% confidence interval.
+    A nice sanity check that in well behaved circumstances, standard error is
+    equivalent to bootstrap confidence interval results. Computes 95%
+    confidence interval.
 
     Parameters
     ----------
@@ -268,6 +271,7 @@ def compare_uncs(x):
     None.
 
     """
+    
     x_mean = np.mean(x)
 
     gum_u = standard_error(x)
@@ -306,6 +310,7 @@ def improved_autocorrelation(x, lag_max=None):
         Array of indices for lags where this is likely autocorrelation.
 
     """
+    
     # Force x to behave be a numpy array
     x = np.array(x)
     # Calculate sample autocorrelation estimate
@@ -361,6 +366,7 @@ def bootstrap_datasets_ci(*datasets, R=int(1e4), alpha=0.5):
         the mean.
 
     """
+    
     ds = datasets
     # TODO: No need to limit this to first dataset
     N = len(ds[0])

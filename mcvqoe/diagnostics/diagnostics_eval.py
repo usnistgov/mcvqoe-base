@@ -6,6 +6,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 
+
 class evaluate():
     """
     Plot diagnostics and inform user of potential problems in collected
@@ -18,19 +19,19 @@ class evaluate():
     
     Attributes
     ----------   
-    fs : int 
-        sampling rate of rx recordings       
+    fs : int
+        Sampling rate of Rx recordings       
     rx_name : list
-         names of rx recordings 
+        Names of Rx recordings 
     a_weight : array
-         A_Weight of every trial    
+        A_Weight of every trial    
     fsf_all : list
-         FSF scores of every trial
+        FSF scores of every trial
     peak_dbfs : list
-         peak amplitude of each trial, dB relative to full 
-         scale      
+        Peak amplitude of each trial, dB relative to full 
+        scale      
     trials : int
-         number of trials
+        Number of trials
     clip_flag : list
         Trials that clipped  
     fsf_flag : list
@@ -43,9 +44,9 @@ class evaluate():
     See Also
     --------
     mcvqoe.diagnostics : Measurement class for generating diagnostics data
-
     
     """
+    
     def __init__(self,
                  wav_dir = None,
                  json_data=None):
@@ -91,6 +92,7 @@ class evaluate():
             json version of diagnostic data and flag conditions
 
         """
+        
         test_info = dict([(self.test_name, '')])
         
         out_json = {
@@ -124,7 +126,8 @@ class evaluate():
         data : pd.DataFrame
             DataFrame version of diagnostic data and flag conditions
 
-        """  
+        """
+        
         if isinstance(json_data, str):
             json_data = json.loads(json_data)
         # Extract audio and diagnostics data from json_data
@@ -134,16 +137,9 @@ class evaluate():
         # Return data attributes 
         return data, test_name
 
-            
     def fsf_plot(self):
-        """
-        Plot the FSF of every trial.  
+        """Plot the FSF of every trial"""
         
-        Returns
-        -------
-        None.
-    
-        """
         nrow, _ = self.data.shape
         
         df_flag = self.data[self.data['FSF_flag'] == 1]
@@ -189,14 +185,8 @@ class evaluate():
         return fig      
         
     def aw_plot(self):
-        """
-        Plot the a-weight of every trial.    
+        """Plot the a-weight of every trial"""
         
-        Returns
-        -------
-        None.
-    
-        """
         nrow, _ = self.data.shape
         df_flag = self.data[self.data['AW_flag'] == 1]
         flag_indices = np.array([f'Trial: {i}' for i in df_flag.index+1])
@@ -240,14 +230,8 @@ class evaluate():
         return fig
     
     def peak_dbfs_plot(self):
-        """
-        Plot the peak dBfs of every trial.    
+        """Plot the peak dBfs of every trial"""
         
-        Returns
-        -------
-        None.
-    
-        """
         nrow, _ = self.data.shape
         
         df_flag = self.data[self.data['Clip_flag'] == 1]        
@@ -290,4 +274,4 @@ class evaluate():
         fig.update_xaxes(title_text='Trial')
         fig.update_yaxes(title_text='Peak Amplitude (dBfs)')
         
-        return fig      
+        return fig

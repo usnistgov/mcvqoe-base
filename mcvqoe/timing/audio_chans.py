@@ -21,18 +21,22 @@ def require_timecode(audio_player):
     See Also
     --------
     mcvqoe.mouth2ear : Two location m2e tests use timecodes.
+    mcvqoe.intelligibility : Two location tests use timecodes.
+    mcvqoe.accesstime : Two location tests use timecodes.
 
     Examples
     --------
 
     By default there is no timecode recorded by AudioPlayer.
 
-    >>> ap=AudioPlayer()
+    >>> import mcvqoe.hardware.AudioPlayer as AudioPlayer
+    >>> ap = AudioPlayer()
     >>> ap.require_timecode()
     ValueError: Timecode channel not found in ('rx_voice',)
 
     If a timecode is recorded, no error is raised.
-    >>> ap=AudioPlayer(rec_chans={'rx_voice':0,'IRIGB_timecode':1})
+    >>> import mcvqoe.hardware.AudioPlayer as AudioPlayer
+    >>> ap = AudioPlayer(rec_chans={'rx_voice':0, 'IRIGB_timecode':1})
     >>> ap.require_timecode()
 
     """
@@ -47,7 +51,7 @@ def require_timecode(audio_player):
         raise ValueError(f'Timecode channel not found in {chans}')
 
 def timecode_chans(chans,tc_priority=tuple(timecode_types.keys())):
-    '''
+    """
     Return the indices of the timecode recording channels.
     
     Finds the channels that contain timecode. Sorts timecodes based on
@@ -57,9 +61,9 @@ def timecode_chans(chans,tc_priority=tuple(timecode_types.keys())):
     ----------
     chans : tuple of strings
         Recording channels to search.
-    tc_priority : tuple of strings, default=('IRIGB_timecode','soft_timecode')
+    tc_priority : tuple of strings, default=('IRIGB_timecode', 'soft_timecode')
         Matching timecodes in this array get sorted first based on order in array.
-    '''
+    """
     
     tc=[]
     order=[]

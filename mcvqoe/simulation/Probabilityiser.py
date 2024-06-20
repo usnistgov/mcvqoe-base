@@ -1,10 +1,4 @@
-#!/usr/bin/env python
-
 import random
-
-import numpy as np
-
-import pdb
 
 
 def expected_psud(p_a, p_r, interval, message_length, method="EWC",
@@ -37,8 +31,9 @@ def expected_psud(p_a, p_r, interval, message_length, method="EWC",
     Evaluate the PSuD when P_a = P_r = 0.5, with an interval of 1 for a three
     second long message.
 
-    >>> mcvqoe.simulation.expected_psud(0.5,0.5,1,3)
+    >>> mcvqoe.simulation.expected_psud(0.5, 0.5, 1, 3)
     """
+    
     if(method == "EWC"):
         # TODO: Use threshold here...if it makes sense?
         psud = p_a * p_r ** (message_length/interval - 1)

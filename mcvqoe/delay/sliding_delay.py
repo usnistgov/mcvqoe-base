@@ -7,21 +7,21 @@ from .ITS_delay import ITS_delay_est
 def sliding_delay_estimates(test, ref, fs, winLength=4, winStep=2):
     # SLIDING_DELAY_ESTIMATES perform sequence of windowed time delay estimates
     #
-    #   SLIDING_DELAY_ESTIMATES(test,ref,fs) performs delay estimates between
+    #   SLIDING_DELAY_ESTIMATES(test, ref, fs) performs delay estimates between
     #       ref (input to the system under test) and test (output from system
     #       under test)
     #
-    #   SLIDING_DELAY_ESTIMATES(test,ref,fs,winLength) specifies the window
+    #   SLIDING_DELAY_ESTIMATES(test, ref, fs, winLength) specifies the window
     #       length in seconds, winLength, instead of using the default of 4
     #       seconds. The window length is the length of time to use for the
     #       delay estimates
     #
-    #   SLIDING_DELAY_ESTIMATES(test,ref,fs,winLength,winStep) specifies the
+    #   SLIDING_DELAY_ESTIMATES(test, ref, fs, winLength, winStep) specifies the
     #       window step in seconds, winStep, instead of using the default of 2
     #       seconds. The window step is the amount of time the window moves
     #       forward for each subsequent time delay estimate.
     #
-    #   Delays=SLIDING_DELAY_ESTIMATES(__) returns the delays as a vector
+    #   Delays = SLIDING_DELAY_ESTIMATES(__) returns the delays as a vector
     #   instead of plotting them. Delays holds one delay estimate in ms for
     #   each time window. The resolution of these estimates is 1/8kHz. The
     #   accuracy of these estimates depends of the level of background noise

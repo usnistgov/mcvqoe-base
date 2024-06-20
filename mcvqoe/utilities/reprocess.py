@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import argparse
 import importlib.resources
 import mcvqoe
@@ -12,12 +10,14 @@ import tempfile
 csv_path_names = (("Access_Time", "Intelligibility", "Mouth_2_Ear", "PSuD",
                    "Transmit_Volume_Optimization"), ("MCV-QoE"))
 
+
 def make_parser():
 
     #-----------------------[Setup ArgumentParser object]-----------------------
 
     parser = argparse.ArgumentParser(
         description="Reprocess audio files and write a new .csv with newly measured values")
+    
     parser.add_argument('datafile', default=None, type=str,
                         help='CSV file from test to reprocess')
     parser.add_argument('outfile', default=None, type=str, nargs='?',

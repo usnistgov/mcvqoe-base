@@ -24,10 +24,10 @@ def audio_channels_to_string(channels):
     mcvqoe.base.parse_audio_channels : Inverse of this function.
     '''
     
-    if isinstance(channels,str):
+    if isinstance(channels, str):
         raise TypeError('channels can not be a string')
     
-    #channel string
+    # channel string
     return '('+(';'.join(channels))+')'
 
 
@@ -54,7 +54,8 @@ def parse_audio_channels(csv_str):
     mcvqoe.hardware.QoEsim : Simulation implementation of play_record.
     mcvqoe.base.audio_channels_to_string : Inverse of this function.
     '''
-    match=re.search('\((?P<channels>[^)]+)\)',csv_str)
+    
+    match = re.search('\((?P<channels>[^)]+)\)', csv_str)
 
     if(not match):
         raise ValueError(f'Unable to parse channels {csv_str}, expected in the form "(chan1;chan2;...)"')

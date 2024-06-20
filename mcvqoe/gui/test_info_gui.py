@@ -44,8 +44,8 @@ class TestInfoGui(tk.Tk):
     --------
     get test notes from the user
 
-    >>> gui=TestInfoGui()
-    >>> test_info=gui.show()
+    >>> gui = TestInfoGui()
+    >>> test_info = gui.show()
     >>> print(test_info)
     """
 
@@ -94,6 +94,7 @@ class TestInfoGui(tk.Tk):
         fname : str
             Full path of the file to read.
         """
+        
         self.info_in = {}
 
         if fname:
@@ -123,6 +124,7 @@ class TestInfoGui(tk.Tk):
         dict
             Dictionary with "Post Test Notes" or "Error Notes".
         """
+        
         # Window creation
         self.title("Test Information")
 
@@ -217,9 +219,8 @@ class TestInfoGui(tk.Tk):
         return self.test_info
 
     def _submit_action(self):
-        """
-        Collect user input from Tkinter input window.
-        """
+        """Collect user input from Tkinter input window."""
+        
         self.test_info = {
             "Test Type": self.test_type_edit.get(),
             "Tx Device": self.tx_dev_edit.get(),
@@ -262,8 +263,8 @@ class PostTestGui(tk.Tk):
     --------
     Get post test notes from user
 
-    >>> gui=PostTestGui()
-    >>> notes=gui.show()
+    >>> gui = PostTestGui()
+    >>> notes = gui.show()
     >>> print(notes)
     """
 

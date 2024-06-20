@@ -1,31 +1,28 @@
-#!/usr/bin/env python
-
-import os
-import sys
-import platform
-import json
-import re
-import subprocess
 import argparse
-import pkgutil
-import shutil
-
-# used for version checking
-import pkg_resources
+import json
 import mcvqoe
 import mcvqoe.base
+import os
+import pkg_resources
+import pkgutil
+import platform
+import re
+import shutil
+import subprocess
+import sys
 
 from .sync import terminal_progress_update
 
-#name for saved settings file
+
+# name for saved settings file
 settings_name = "CopySettings.json"
 
 if platform.system() == "Windows":
 
     def get_drive_serial(drive):
-        #args for subprocess
-        sp_args={}
-        #only for windows, prevent windows from appearing
+        # args for subprocess
+        sp_args = {}
+        # only for windows, prevent windows from appearing
         if os.name == 'nt':
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
@@ -45,7 +42,7 @@ if platform.system() == "Windows":
                 raise RuntimeError("Device is not ready")
             else:
                 raise RuntimeError(
-                    f"Could not get volume info vol returnd {res.returncode}"
+                    f"Could not get volume info vol returned {result.returncode}"
                 )
 
         # find drive serial number
@@ -61,9 +58,9 @@ if platform.system() == "Windows":
             raise RuntimeError("Serial number not found")
 
     def list_drives():
-        #args for subprocess
-        sp_args={}
-        #only for windows, prevent windows from appearing
+        # args for subprocess
+        sp_args = {}
+        # only for windows, prevent windows from appearing
         if os.name == 'nt':
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
@@ -191,15 +188,15 @@ def log_update(log_in_name, log_out_name, dryRun=False, progress_update=terminal
         if in_dat:
 
             if not dryRun:
-                #copy file to new location
+                # copy file to new location
                 shutil.copy(log_in_name,log_out_name)
 
-            progress_update('log-complete',0 ,0, lines=len(in_dat.splitlines()), file=log_out_name)
+            progress_update('log-complete', 0, 0, lines=len(in_dat.splitlines()), file=log_out_name)
         else:
             if out_dat:
                 raise RuntimeError("Input file is shorter than output")
             else:
-                progress_update('log-complete',0 ,0, lines=0, file=log_out_name)
+                progress_update('log-complete', 0, 0, lines=0, file=log_out_name)
 
     # print success message
     #print(f"Log updated successfully to {log_out_name}\n")
@@ -216,15 +213,15 @@ def load_settings_file(file, match_drive=True):
         set_dict['prefix'] = ""
     else:
 
-        #if we get a string for DriveSerial, make it a tuple
+        # if we get a string for DriveSerial, make it a tuple
         if isinstance(set_dict["DriveSerial"], str):
-            set_dict["DriveSerial"]=(set_dict["DriveSerial"],)
+            set_dict["DriveSerial"] = (set_dict["DriveSerial"], )
         else:
-            #turn other things (ie. list) into a tuple
-            set_dict["DriveSerial"]=tuple(set_dict["DriveSerial"])
+            # turn other things (ie. list) into a tuple
+            set_dict["DriveSerial"] = tuple(set_dict["DriveSerial"])
 
         if match_drive:
-            #get a list of connected storage devices
+            # get a list of connected storage devices
             drives = list_drives()
 
             matching_drives = [item for item in drives
@@ -237,7 +234,7 @@ def load_settings_file(file, match_drive=True):
                 raise RuntimeError(f'Found {len(matching_drives)} '
                                     'matching drives. Please unplug all but one')
 
-            #only one drive found, get info
+            # only one drive found, get info
             drive_info = matching_drives[0]
 
             # create drive prefix, add slash for path concatenation
@@ -263,7 +260,7 @@ def create_new_settings(direct, dest_dir, cname):
     # create dictionary of options, normalize paths
     set_dict = {
         "ComputerName": os.path.normpath(cname),
-        "DriveSerial": (drive_ser,),
+        "DriveSerial": (drive_ser, ),
         "Path": os.path.normpath(rel_path),
         "Direct": direct,
         "prefix": prefix,
@@ -274,27 +271,27 @@ def create_new_settings(direct, dest_dir, cname):
 def write_settings(set_dict, file):
     save_keys = ("ComputerName", "DriveSerial", "Path", "Direct")
 
-    #filter dictionary to contain only the specified keys
-    out_dict = {k : v for k,v in set_dict.items() if k in save_keys}
+    # filter dictionary to contain only the specified keys
+    out_dict = {k : v for k, v in set_dict.items() if k in save_keys}
 
-    #if we get a string for DriveSerial, make it a tuple
+    # if we get a string for DriveSerial, make it a tuple
     if isinstance(out_dict["DriveSerial"], str):
-        out_dict["DriveSerial"]=(out_dict["DriveSerial"],)
+        out_dict["DriveSerial"] = (out_dict["DriveSerial"], )
 
-    #write out new dict
+    # write out new dict
     json.dump(out_dict, file)
 
 def add_drive(path, set_path):
     (prefix, rel_path) = os.path.splitdrive(path)
 
     if rel_path:
-        #normalize rel_path to get rid of extra slashes
+        # normalize rel_path to get rid of extra slashes
         rel_path = os.path.normpath(rel_path)
 
         if not rel_path and rel_path != os.path.sep:
             raise RuntimeError(f'Expected path to drive but got \'{path}\'')
 
-    #load settings from file
+    # load settings from file
     settings = load_settings_file(set_path, match_drive=False)
 
     if settings['Direct']:
@@ -303,15 +300,15 @@ def add_drive(path, set_path):
     # get serial number for the drive to add
     drive_ser = get_drive_serial(prefix)
 
-    #get drives as a set
+    # get drives as a set
     drive_set = set(settings['DriveSerial'])
 
-    #add drive serial
+    # add drive serial
     drive_set.add(drive_ser)
 
     settings['DriveSerial'] = tuple(drive_set)
 
-    #write new settings
+    # write new settings
     with open(set_path, 'w') as f:
         write_settings(settings, f)
 
@@ -405,7 +402,8 @@ test_cpy_steps = {
                  }
 
 
-def copy_test_files(out_dir, dest_dir=None, cname=None, sync_dir=None, dry_run=False, force=False, direct=False, progress_update=None):
+def copy_test_files(out_dir, dest_dir=None, cname=None, sync_dir=None, dry_run=False,
+                    force=False, direct=False, progress_update=None):
 
     if progress_update:
         force_lib_sync = True
@@ -483,42 +481,43 @@ def copy_test_files(out_dir, dest_dir=None, cname=None, sync_dir=None, dry_run=F
                     import_sync(out_dir, destDir, bd=False, cull=True, sunset=30, progress_update=progress_update)
 
 def recursive_sync(out_dir, dry_run=False, sync_dir=None, progress_update=None):
-    #keep track of how many directories we found
+    # keep track of how many directories we found
     num_found = 0
     num_success = 0
-    #check if progress update was given
+    # check if progress update was given
     if progress_update is None:
-        #use terminal function by default
-        prog_fun=terminal_progress_update
+        # use terminal function by default
+        prog_fun = terminal_progress_update
     else:
-        #use given function
-        prog_fun=progress_update
-    #get directory path
+        # use given function
+        prog_fun = progress_update
+    # get directory path
     out_dir = os.path.abspath(out_dir)
     for n, (root, dirs, files) in enumerate(os.walk(out_dir, topdown=True)):
         if dry_run:
             print(f'Checking "{root}" for "{settings_name}"')
-        #check for copy settings
+        # check for copy settings
         if settings_name in files:
             num_found += 1
             prog_fun('recur-found', 0, n, dir=root)
             try:
-                #settings found, copy files
+                # settings found, copy files
                 copy_test_files(root,dry_run=dry_run, sync_dir=sync_dir, progress_update=progress_update)
-                #no error, this was a success
+                # no error, this was a success
                 num_success += 1
             except RuntimeError as e:
-                #print error and continue
+                # print error and continue
                 prog_fun('recur-error', 0, n, err=str(e))
-            #remove directories from dirs
-            #this will skip all directories
+            # remove directories from dirs
+            # this will skip all directories
             dirs.clear()
-    #return stats
+    # return stats
     return num_found, num_success
 
 # main function
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    
     parser.add_argument(
         "-d",
         "--dest-dir",
@@ -590,16 +589,16 @@ def main():
         out_dir = args.outdir
 
 
-    #convert to dict for use as kwargs
+    # convert to dict for use as kwargs
     args_dict = vars(args).copy()
 
-    #remove some things
+    # remove some things
     args_dict.pop('outdir')
     args_dict.pop('recursive')
 
     if args.recursive:
         num_found, num_success = recursive_sync(out_dir, dry_run=args.dry_run, sync_dir=args.sync_dir)
-        #check if we found any files
+        # check if we found any files
         if num_found:
             print(f'{num_found} test directories found, {num_success} successfully synced')
         else:

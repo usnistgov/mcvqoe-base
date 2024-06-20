@@ -1,10 +1,10 @@
-import numpy as np
-from scipy.cluster.vq import kmeans2
-from warnings import warn
 import datetime
 
+import numpy as np
 
-  
+from scipy.cluster.vq import kmeans2
+from warnings import warn
+
 
 # This software was developed by employees of the National Institute of
 # Standards and Technology (NIST), an agency of the Federal Government.
@@ -29,8 +29,9 @@ import datetime
 # WHETHER OR NOT LOSS WAS SUSTAINED FROM, OR AROSE OUT OF THE RESULTS OF, OR
 # USE OF, THE SOFTWARE OR SERVICES PROVIDED HEREUNDER.
 
+
 def IRIGB_decode(tca, fs, tc_tol=0.05):
-    '''
+    """
     decodes an IRIG-B timecode
     
     Parameters
@@ -49,7 +50,7 @@ def IRIGB_decode(tca, fs, tc_tol=0.05):
         Tuple of decode times.
     fsamp : list of ints
         Sample numbers that decoded times came from.
-    '''
+    """
     
     #make sure that time code input is a numpy array
     tca = np.array(tca, dtype="float64")
@@ -106,15 +107,15 @@ def IRIGB_decode(tca, fs, tc_tol=0.05):
         if invalid[x]:
             bits[x] = -2
     #index within a frame -1 means invalid frame
-    frame_idx=-1
+    frame_idx = -1
 
-    weight=[  1,  2,  4,  8,  0, 10, 20, 40, -1,  1,  2,  4,  8,  0, 10, 20, 40,  0, -1,
-          1,  2,  4,  8,  0, 10, 20,  0,  0, -1,  1,  2,  4,  8,  0, 10, 20, 40, 80, -1,
-        100,200,  0,  0,  0,0.1,0.2,0.4,0.8, -1,  1,  2,  4,  8,  0, 10, 20, 40, 80, -1,
-          1,  2,  4,  8, 16, 32, 64,128,256, -1,  1,  2,  4,  8, 16, 32, 64,128,256, -1,
-          1,  2,  4,  8, 16, 32, 64,128,256, -1,512,1024,2048,4096,8192,16384,32768,65536,0,-1]
+    weight = [1, 2, 4, 8, 0, 10, 20, 40, -1, 1, 2, 4, 8, 0, 10, 20, 40, 0, -1,
+              1, 2, 4, 8, 0, 10, 20, 0, 0, -1, 1, 2, 4, 8, 0, 10, 20, 40, 80, -1,
+              100, 200, 0, 0, 0, 0.1, 0.2, 0.4, 0.8, -1, 1, 2, 4, 8, 0, 10, 20, 40, 80, -1,
+              1, 2, 4, 8, 16, 32, 64, 128, 256, -1, 1, 2, 4, 8, 16, 32, 64, 128, 256, -1,
+              1, 2, 4, 8, 16, 32, 64, 128, 256, -1, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 0, -1]
 
-    value=[  1,1,1,1,1,1,1,1,-1,2,2,2,2,2,2,2,2,2,-1,
+    value=[1,1,1,1,1,1,1,1,-1,2,2,2,2,2,2,2,2,2,-1,
            3,3,3,3,3,3,3,3,3,-1,4,4,4,4,4,4,4,4,4,-1,
            4,4,4,4,4,5,5,5,5,-1,6,6,6,6,6,6,6,6,6,-1,
            7,7,7,7,7,7,7,7,7,-1,8,8,8,8,8,8,8,8,8,-1,
@@ -125,10 +126,10 @@ def IRIGB_decode(tca, fs, tc_tol=0.05):
     #preallocate frame bits
     fbits = np.zeros((int(np.floor(len(bits)/100)), 100))
     #sample number of the first rising edge in the frame
-    fsamp = np.zeros((int(np.floor(len(bits)/100)),),dtype=int) # gsh3: np.int--> int
+    fsamp = np.zeros((int(np.floor(len(bits)/100)), ), dtype=int) # gsh3: np.int--> int
 
     #frame number
-    fnum=0
+    fnum = 0
 
     for k in range(1, len(bits)):
         #check if current flame is invalid
@@ -136,9 +137,9 @@ def IRIGB_decode(tca, fs, tc_tol=0.05):
             #check for a frame start
             if(bits[k]==2 and bits[k-1]==2):
                 #set new frame index
-                frame_idx=0
+                frame_idx = 0
                 #zero frame data
-                frame=np.zeros(max(value))
+                frame = np.zeros(max(value))
         else:
             #check if this should be a marker bit
             if(frame_idx % 10) == 8:
@@ -147,7 +148,7 @@ def IRIGB_decode(tca, fs, tc_tol=0.05):
                     #give warning for missing marker
                     warn('Marker not found at frame index %i' % frame_idx)
                     #reset frame index
-                    frame_idx=-1
+                    frame_idx = -1
                     #restart loop
                     continue
             else:
@@ -169,27 +170,27 @@ def IRIGB_decode(tca, fs, tc_tol=0.05):
                         #give warning for invalid bit value
                         warn('Unexpected bit value %i at frame index %i' %(bits[k],frame_idx))
                     #reset frame index
-                    frame_idx=-1
+                    frame_idx = -1
                     #restart loop
                     continue
                 #get value idx
-                vi=value[frame_idx]
+                vi = value[frame_idx]
                 #otherwise get bit value
-                frame[vi-1]=frame[vi-1]+bits[k]*weight[frame_idx]
+                frame[vi-1] = frame[vi-1]+bits[k]*weight[frame_idx]
             #increment frame index
-            frame_idx=frame_idx+1
+            frame_idx = frame_idx+1
             #check if frame is complete
             if(frame_idx>=99):
                 #store decoded frame data
-                frames[fnum]=frame
+                frames[fnum] = frame
                 #store decoded frame bits
-                fbits[fnum]=bits[(k-99):k+1]
+                fbits[fnum] = bits[(k-99):k+1]
                 #get sample number of the first rising edge after frame marker
-                fsamp[fnum]=r_edg[k-98]
+                fsamp[fnum] = r_edg[k-98]
                 #search for next frame
-                frame_idx=-1
+                frame_idx = -1
                 #increment frame number
-                fnum=fnum+1
+                fnum = fnum+1
 
     #remove extra data
     frames = frames[0:fnum]
@@ -203,13 +204,13 @@ def IRIGB_decode(tca, fs, tc_tol=0.05):
     #frame for month and fix it to 1 later. Day of year will wrap to the
     #correct month
 
-    dvec=frames[:,[5,4,3,2,1,0]]
+    dvec = frames[:, [5, 4, 3, 2, 1, 0]]
     
     #add in year digits from current year
-    dvec[:,0]= dvec[:,0] + np.floor(datetime.datetime.now().year / 100) * 100
+    dvec[:, 0] = dvec[:, 0] + np.floor(datetime.datetime.now().year / 100) * 100
     
     #set month to 1
-    dvec[:,1]=1
+    dvec[:, 1] = 1
 
     dates = []
     for d in dvec:
@@ -254,7 +255,7 @@ def envFIR(x, n):
     firFilter = firFilter / sum(np.real(firFilter))
 
     #apply filter and take the magnitude
-    y = np.abs(np.convolve(x,firFilter,'same'))
+    y = np.abs(np.convolve(x, firFilter, 'same'))
     return(y)
     
 
@@ -282,36 +283,36 @@ def envelope(x, n):
 
 
 #validates the pulse width with an array of bools
-def is_valid_pw(val,th):
+def is_valid_pw(val, th):
     return np.logical_and(val > th[0], val < th[1])
 
 #helps to ensure that thresholds don't overlap
-def fix_overlap(t1,t2):
+def fix_overlap(t1, t2):
     #check if thresholds overlap    
     if(t1>t2):
         #set thresholds to average
-        t1=np.mean([t1,t2])
+        t1 = np.mean([t1, t2])
         #this calculates machine epsilon
-        t2=t1+np.finfo(float).eps
+        t2 = t1+np.finfo(float).eps
     return t1, t2
 
 
-def pw_to_bits(pw,Tb,tol):
+def pw_to_bits(pw, Tb, tol):
     #thresholds for ones
-    Th1 = 0.5 * Tb + Tb * np.array([-tol,tol])
+    Th1 = 0.5 * Tb + Tb * np.array([-tol, tol])
     #thresholds for zeros
-    Th0 = 0.2 * Tb + Tb * np.array([-tol,tol])
+    Th0 = 0.2 * Tb + Tb * np.array([-tol, tol])
     #thresholds for marker
-    Thm = 0.8 * Tb + Tb * np.array([-tol,tol])
+    Thm = 0.8 * Tb + Tb * np.array([-tol, tol])
     #make sure thresholds don't overlap
-    Th0[1],Th1[0] = fix_overlap(Th0[1],Th1[0])
-    Th1[1],Thm[0] = fix_overlap(Th1[1],Thm[0])
+    Th0[1], Th1[0] = fix_overlap(Th0[1], Th1[0])
+    Th1[1], Thm[0] = fix_overlap(Th1[1], Thm[0])
     #check for valid pulse width for a one
-    valid1 = is_valid_pw(pw,Th1)
+    valid1 = is_valid_pw(pw, Th1)
     #check for valid pulse width for a zero
-    valid0 = is_valid_pw(pw,Th0)
+    valid0 = is_valid_pw(pw, Th0)
     #check for valid marker pulse width
-    validmk = is_valid_pw(pw,Thm)
+    validmk = is_valid_pw(pw, Thm)
     #print(validmk.tolist())
     
     #return 0 for zero 1 for one 2 for mark and -1 for invalid

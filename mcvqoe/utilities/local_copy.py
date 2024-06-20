@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
 """
 Created on Wed Jan 13 14:07:46 2021
 
 @author: jkp4
 """
+
 import appdirs
 import argparse
 import configparser
@@ -12,7 +12,6 @@ import re
 import shutil
 import warnings
 
-import pdb
 
 appname = "mcvqoe"
 appauthor = "MCV"
@@ -49,6 +48,7 @@ def local_copy(test_names, test_type, local_path=None,
     None.
 
     """
+    
     # ---------------------[Load Config File]----------------------------------
     # Make application directories if they do not exist
     os.makedirs(appdirs.user_data_dir(appname, appauthor), exist_ok=True)
@@ -191,6 +191,7 @@ def print_config(test_type=None):
     None.
 
     """
+    
     # ---------------------[Load Config File]----------------------------------
     # Make application directories if they do not exist
     os.makedirs(appdirs.user_data_dir(appname, appauthor), exist_ok=True)
@@ -234,6 +235,7 @@ def convert_log_search_names(fnames):
         DESCRIPTION.
 
     """
+    
     if type(fnames) is str:
         fnames = [fnames]
     lc_names = []
@@ -256,9 +258,11 @@ def convert_log_search_names(fnames):
 
 def main():
     """Command line method to run local-copy."""
+    
     parser = argparse.ArgumentParser(
         description="Copy data files from network drive to local machine"
     )
+    
     parser.add_argument("-f", "--test-names",
                         default=[],
                         type=str,

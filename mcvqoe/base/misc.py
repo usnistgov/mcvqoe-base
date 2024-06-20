@@ -1,8 +1,8 @@
 import csv
+import scipy.io.wavfile
 
 import numpy as np
 import pandas as pd
-import scipy.io.wavfile
 import scipy.signal as sig
 
 
@@ -33,11 +33,12 @@ def audio_float(dat):
     load audio and ensure that it is on the -1 to +1 range
 
     >>> fs, dat = scipy.io.wavfile('audio.wav')
-    >>> float_dat=audio_float(dat)
+    >>> float_dat = audio_float(dat)
     """
-    return audio_type(dat,dtype=np.dtype('float'))
+    
+    return audio_type(dat, dtype=np.dtype('float'))
 
-def audio_type(dat,dtype = np.dtype('int16')):
+def audio_type(dat, dtype=np.dtype('int16')):
     """
     Convert audio data to different data type with standard scale.
 
@@ -96,7 +97,6 @@ def audio_type(dat,dtype = np.dtype('int16')):
     else:
         raise RuntimeError(f'unknown audio type \'{dat.dtype}\'')
 
-
 def audio_read(filename):
     """
     Open a WAV file.
@@ -127,10 +127,11 @@ def audio_read(filename):
     mcvqoe.base.audio_type
 
     """
+    
     sample_rate, audio_data = scipy.io.wavfile.read(filename)
     audio_data = audio_type(audio_data, dtype=np.dtype('float32'))
+    
     return sample_rate, audio_data
-
 
 def audio_write(filename, rate, data):
     """
@@ -158,9 +159,9 @@ def audio_write(filename, rate, data):
     mcvqoe.base.audio_type
 
     """
+    
     data = audio_type(data, dtype=np.dtype('int16'))
     scipy.io.wavfile.write(filename, rate, data)
-
 
 def svp56_fast(x, fs=8000):
     """
@@ -181,7 +182,7 @@ def svp56_fast(x, fs=8000):
 
     Written by S. Voran, in mid 1990's
 
-    Usage:  [asl,saf,active]=svp56_fast(x, fs)
+    Usage:  [asl, saf, active] = svp56_fast(x, fs)
 
     Parameters
     ----------
@@ -209,8 +210,10 @@ def svp56_fast(x, fs=8000):
     --------
     Measure the active speech level of a .wav file
 
-    >>> (asl,_,_)=svp56_fast('speech.wav')
+    >>> (asl, _, _) = svp56_fast('speech.wav')
+    
     """
+    
     # if x is a filename, extact data from the wav file
     if isinstance(x, str):
         fs, x = scipy.io.wavfile(x)
@@ -325,7 +328,6 @@ def svp56_fast(x, fs=8000):
         active[trans[j] : min(trans[j] + hs - 1, n) + 1] = 1
     return asl, saf, active
 
-
 def load_cp(fname):
     """
     Read in cutpoints from file.
@@ -342,7 +344,7 @@ def load_cp(fname):
     Returns
     -------
     tuple of dicts
-        Tuple of dicts each with keys ['Clip','Start','End'].
+        Tuple of dicts each with keys ['Clip', 'Start', 'End'].
 
     See Also
     --------
@@ -353,7 +355,9 @@ def load_cp(fname):
     Example of loading cutpoints
 
     >>> load_cp('cp.csv')
+    
     """
+    
     # field names for cutpoints
     cp_fields = ["Clip", "Start", "End"]
     # open cutpoints file
@@ -383,7 +387,6 @@ def load_cp(fname):
             cp.append(row)
         return tuple(cp)
 
-
 def write_cp(fname, cutpoints):
     """
     Write cutpoints to file.
@@ -395,7 +398,7 @@ def write_cp(fname, cutpoints):
     fname : str
         Name of cutpoint file to read.
     cutpoints : tuple of dicts
-        Tuple of dicts each with keys ['Clip','Start','End'].
+        Tuple of dicts each with keys ['Clip', 'Start', 'End'].
 
     See Also
     --------
@@ -405,9 +408,11 @@ def write_cp(fname, cutpoints):
     --------
     Example of saving cutpoints
 
-    >>> cutpoints=({'Clip': 24, 'Start': 0, 'End': 41970})
-    >>> write_cp('cp.csv',cutpoints)
+    >>> cutpoints = ({'Clip': 24, 'Start': 0, 'End': 41970})
+    >>> write_cp('cp.csv', cutpoints)
+    
     """
+    
     # field names for cutpoints
     cp_fields = ["Clip", "Start", "End"]
     # open cutpoints file
@@ -423,7 +428,6 @@ def write_cp(fname, cutpoints):
             wcp["End"] += 1
             # write each row
             writer.writerow(wcp)
-
 
 def a_weighted_power(x, fs=48000):
     """
@@ -460,6 +464,7 @@ def a_weighted_power(x, fs=48000):
     Calculate the A-weighted power for a 48 kHz audio vector
 
     >>> a_weighted_power(audio)
+    
     """
 
     # Coefficients for A-weighting filter with fs=48000
@@ -528,6 +533,7 @@ def get_measurement_from_file(filepath, module=True):
         Measurement type. Returns None if it could not be determined.
 
     """
+    
     # Initialize measurement
     measurement = None
     try:
@@ -561,8 +567,6 @@ def get_measurement_from_file(filepath, module=True):
             if 'FSF' in df.columns:
                 measurement = 'tvo'
         
-            
-    
     if module and measurement is not None:
         measurement_dir_modules = {    
             'access' : 'mcvqoe.accesstime',
@@ -573,6 +577,5 @@ def get_measurement_from_file(filepath, module=True):
             'diagnostics': 'mcvqoe.diagnostics'
         }
         measurement = measurement_dir_modules[measurement]
-    return measurement
-
         
+    return measurement

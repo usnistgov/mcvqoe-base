@@ -21,12 +21,6 @@ try:
         This class uses a thread running `input()` to get input from the user.
         This a fallback RecStop method that should be available on most platforms
 
-        Parameters
-        ----------
-
-        Attributes
-        ----------
-
         See Also
         --------
         mcvqoe.hardware.AudioPlayer : ThreadRecStop works with AudioPlayer.record
@@ -83,13 +77,7 @@ try:
         Class for stopping audio recording
 
         This class uses msvcrt to get keypresses. This will only work on Windows.
-
-        Parameters
-        ----------
-
-        Attributes
-        ----------
-
+        
         See Also
         --------
         mcvqoe.hardware.AudioPlayer : WinRecStop works with AudioPlayer.record
@@ -138,13 +126,7 @@ try:
         This class uses termios.tcsetattr to put the terminal into raw mode to
         be able to check for characters in the input without blocking.
         The termios library is only available on Unix systems.
-
-        Parameters
-        ----------
-
-        Attributes
-        ----------
-
+        
         See Also
         --------
         mcvqoe.hardware.AudioPlayer : TermiosRecStop works with AudioPlayer.record
@@ -204,32 +186,6 @@ class AudioPlayer:
     This class has functions for playing and recording audio and is used in QoE
     testing.
 
-    Parameters
-    ----------
-    fs : int
-        Sample rate of audio in/out in samples per second.
-    blocksize : int
-        The size of the blocks that are sent/received to/from the audio device.
-    buffersize : int
-        The number of blocks in the output buffer.
-    overplay : float
-        The number of seconds of extra audio to play/record at the end of a clip.
-    rec_chans : dict
-        Dictionary describing the recording. Dictionary keys should be one of
-        {'rx_voice','PTT_signal','IRIGB_timecode','tx_beep','soft_timecode'}. The
-        value for each entry is the, zero based, channel number that should be
-        recorded for each signal. For the special 'soft_timecode' channel, no
-        audio recording channel is used and the channel number should be 0.
-    playback_chans : dict
-        Dictionary describing the playback channels. Dictionary keys must be one
-        of {'tx_voice','start_signal'}. The value for each entry is the, zero
-        based, channel number that each signal should be played on.
-    rec_stop : ContextManager
-        Context manager used to test when a recording should be stopped.
-        `rec_stop` is used as a context manager that is entered when the recording
-        starts and exited when the recording stops. The `is_done` method is called
-        to check if the recording should be terminated.
-
     Attributes
     ----------
     sample_rate : int
@@ -265,12 +221,13 @@ class AudioPlayer:
     Examples
     --------
 
-    play 48 kHz audio stored in tx_voice and record in a file named 'test.wav'.
+    Play audio in tx_voice and record in a file named 'test.wav'.
+    note: "F1_harvard_phrases.wav" is found in the mouth2ear 'audio_clips' folder.
 
     >>> import mcvqoe.hardware.AudioPlayer
     >>> import mcvqoe.base.misc
-    >>> rate, tx_voice = mcvqoe.base.audio_read("Tx_F1_harvard_phrases.wav")
-    >>> ap = mcvqoe.hardware.AudioPlayer(fs=int(48e3))
+    >>> rate, tx_voice = mcvqoe.base.audio_read("F1_harvard_phrases.wav")
+    >>> ap = mcvqoe.hardware.AudioPlayer(fs=rate)
     >>> ap.play_record(tx_voice, 'test.wav')
 
     now do the same but also output the start signal on channel 1 and record the
@@ -449,12 +406,13 @@ class AudioPlayer:
         Examples
         --------
 
-        play 48 kHz audio stored in tx_voice and record in a file named 'test.wav'.
+        play audio stored in tx_voice and record in a file named 'test.wav'.
+        note: "F1_harvard_phrases.wav" is found in the mouth2ear 'audio_clips' folder.
     
         >>> import mcvqoe.hardware.AudioPlayer
         >>> import mcvqoe.base.misc
-        >>> rate, tx_voice = mcvqoe.base.audio_read("Tx_F1_harvard_phrases.wav")
-        >>> ap = mcvqoe.hardware.AudioPlayer(fs=int(48e3))
+        >>> rate, tx_voice = mcvqoe.base.audio_read("F1_harvard_phrases.wav")
+        >>> ap = mcvqoe.hardware.AudioPlayer(fs=rate)
         >>> ap.play_record(tx_voice, 'test.wav')
     
         now do the same but also output the start signal on channel 1 and record the
@@ -619,7 +577,6 @@ class AudioPlayer:
         """
         Callback function for the stream.
         Will run as long as there is audio data to play.
-
         """
         
         if self._time_encode:

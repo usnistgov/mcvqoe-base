@@ -11,6 +11,7 @@ def terminal_progress_update(
             new_file="",
             gui_extras=[],
         ):
+    
     if (prog_type == 'proc'):
         if (current_trial == 0):
             # We are post processing
@@ -54,6 +55,7 @@ def terminal_progress_update(
     return True
     
 def terminal_user_check(reason, message, trials=None, time=None):
+    
     abort_test = False
     # Check if we have time and trials
     if (trials and time):
@@ -68,4 +70,3 @@ def terminal_user_check(reason, message, trials=None, time=None):
         abort_test = True
     
     return abort_test
-    

@@ -6,11 +6,14 @@ import stat
 import subprocess
 import tempfile
 import warnings
+
 from datetime import datetime
 
 
+# This hasn't been used in a long time, or updated since changes were made to
+# our file structure, file logging, and file naming conventions. Most likely
+# doesn't work and would need considerable tweaking to get running.
 class log_search:
-
     """
     Class to parse and search MCV QoE log files
 
@@ -26,7 +29,7 @@ class log_search:
         list of indicies matching the last search
     log : list of dicts
         the log attribute holds all of the parsed info from log files
-    searchPath
+    searchPath : string
 
     updateMode : {'Replace','AND','OR','XOR'}
         dictates how found is updated
@@ -127,7 +130,9 @@ class log_search:
 
         # initialize idx
         idx = -1
+        
         # -------------------------[Parse log files]----------------------------
+        
         for fn in filenames:
             with open(fn, "r") as f:
 
@@ -315,7 +320,9 @@ class log_search:
                                 )
                                 # drop back to search mode
                                 status = "searching"
+                                
         # -------------------------[Parse addendum files]-----------------------
+        
         for fn in adnames:
             with open(fn, "r") as f:
 
@@ -417,7 +424,9 @@ class log_search:
                                 raise ValueError(
                                     f"Invalid field {repr(name)} at line {lc} of {short_name}"
                                 )
+                                
         # -------------------------[Parse Group Files]-------------------------
+        
         for fn in groupnames:
             with open(fn, "r") as f:
 
@@ -475,9 +484,8 @@ class log_search:
             self.fieldNames.update(l.keys())
 
     def _logMatch(self, match):
-        """
-        Internal function to find matching log entries
-        """
+        """Internal function to find matching log entries"""
+        
         m = set()
         for n, x in enumerate(self.log):
             eq = [False] * len(match)
@@ -522,8 +530,10 @@ class log_search:
         """
         internal function to update the found attribute based on the update mode
         """
+        
         # make idx a set
         idx = set(idx)
+        
         if self.foundCleared:
             self.found = idx
         else:
@@ -537,6 +547,7 @@ class log_search:
                 self.found ^= idx
             else:
                 raise ValueError(f"Unknown updateMode '{self.updateMode}'")
+                
         # clear cleared
         self.foundCleared = False
 
@@ -592,14 +603,13 @@ class log_search:
         return idx
 
     def clear(self):
-        """
-        clear the found set
-        """
+        """clear the found set"""
+        
         # clear found
         self.found = set()
         self.foundCleared = True
 
-    def datafilenames(self, ftype="csv",ignore_incomplete=False):
+    def datafilenames(self, ftype="csv", ignore_incomplete=False):
         """
         find data files matching a log entry
 
@@ -609,8 +619,8 @@ class log_search:
             what type of files to look for
         """
 
-        #name of test operations
-        test_opps=('Test','Intelligibility','PSuD','Access','M2E')
+        # name of test operations
+        test_opps = ('Test', 'Intelligibility', 'PSuD', 'Access', 'M2E')
 
         types = re.compile(
             r"\.?(?P<csv>csv)|(?P<mat>mat)|(?P<wav>wav)|(?P<sm_mat>sm(?:all)?_mat)|(?P<bad_csv>bad_csv)",
@@ -1115,9 +1125,7 @@ class log_search:
         return arg_d
 
     def argQuery(self, argName):
-        """
-        I really don't remember what this is for
-        """
+        """I really don't remember what this is for"""
 
         f_log = self.flog
 
@@ -1140,16 +1148,14 @@ class log_search:
 # code from : https://bugs.python.org/issue19643#msg208662
 def del_rw(action, name, exc):
     """
-    workaround for deleting read only files with shutil.rmtree
+    Workaround for deleting read only files with shutil.rmtree
     """
     os.chmod(name, stat.S_IWRITE)
     os.remove(name)
 
-
 def isGitURL(str):
-    """
-    detect if a url could be to a git repository
-    """
+    """Detect if a url could be to a git repository"""
+    
     if str.startswith("git@"):
         return True
     elif str.startswith("https://"):
