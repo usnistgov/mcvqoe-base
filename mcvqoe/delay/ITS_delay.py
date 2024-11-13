@@ -5,7 +5,7 @@ import scipy.signal as sig
 from numpy.fft import fft, ifft
 
 
-def ITS_delay_est(x_speech, y_speech, mode, fs=8000, dlyBounds=[np.NINF, np.inf], min_corr=0):
+def ITS_delay_est(x_speech, y_speech, mode, fs=8000, dlyBounds=[-np.inf, np.inf], min_corr=0):
     """
     Estimate the delay history for speech wave forms.
 
